@@ -1,22 +1,33 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { ScrollView as RNScrollView } from 'react-native';
-import DefectPieCharts from './DefectPieCharts';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RouteProp } from '@react-navigation/native';
+import { DefectsReopenedChart, DefectDistributionChart } from './DefectPieCharts';
 import DefectDensitySeverity from './DefectDensitySeverity';
 import DefectsByModule from './DefectsByModule';
 import DefectToRemarkRatio from './DefectToRemarkRatio';
 import TimeToFindDefects from './TimeToFindDefects';
 
-interface ProjectDetailsProps {
-  route: {
-    params: {
-      id: string;
-      name: string;
-      severity: string;
-    };
+// Import the navigation types from App.tsx
+type RootStackParamList = {
+  Login: undefined;
+  Dashboard: undefined;
+  ProjectDetails: {
+    id: string;
+    name: string;
+    severity: string;
   };
-  navigation: any;
+};
+
+type ProjectDetailsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'ProjectDetails'>;
+type ProjectDetailsScreenRouteProp = RouteProp<RootStackParamList, 'ProjectDetails'>;
+
+export interface ProjectDetailsProps {
+  route: ProjectDetailsScreenRouteProp;
+  navigation: ProjectDetailsScreenNavigationProp;
 }
 
 const DEFECT_DATA = [
@@ -85,7 +96,7 @@ const PROJECTS = [
   // { id: '15', name: 'Project 12', severity: 'Low Risk' },
 ];
 
-const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
+const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
   const { id, name, severity } = route.params;
 
   const handleBack = () => {
@@ -97,7 +108,7 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
   const isSmallScreen = screenWidth < 400;
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f7fafd' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f7fafd', paddingVertical:20 }} >
       <View style={styles.topBar}>
         <TouchableOpacity onPress={handleBack} style={styles.iconButton} accessibilityLabel="Back">
           <Icon name="arrow-back" size={28} color="#222" />
@@ -138,8 +149,12 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
               key={def.severity}
               style={[
                 styles.breakdownCard,
-                { borderColor: def.borderColor, backgroundColor: '#fff', shadowColor: def.color },
-                // Add marginBottom except for last card
+                { 
+                  borderColor: def.borderColor, 
+                  backgroundColor: '#fff', 
+                  shadowColor: def.color,
+                  borderWidth: 2, // Ensure border is visible
+                },
                 idx !== DEFECT_DATA.length - 1 ? { marginBottom: 16 } : null
               ]}
             >
@@ -161,26 +176,23 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
           ))}
         </View>
         {/* Insert Defect Density/Severity and Defects by Module here */}
-        <DefectDensitySeverity />
-        <DefectsByModule />
-        <View style={{ height: 48 }} />
-        {/* Placeholder for graphs */}
-        <View style={styles.graphSection}>
-          <Text style={styles.graphTitle}>Defect Density</Text>
-          <View style={styles.graphPlaceholder} />
+        <View style={[styles.cardWithBorder]}>
+          <DefectDensitySeverity />
         </View>
-        <View style={styles.graphSection}>
-          <Text style={styles.graphTitle}>Defect Severity Index</Text>
-          <View style={styles.graphPlaceholder} />
+        <View style={[styles.cardWithBorder]}>
+          <DefectsByModule />
         </View>
-        <View style={styles.graphSection}>
-          <Text style={styles.graphTitle}>Defect to Remark Ratio</Text>
-          <View style={styles.graphPlaceholder} />
-        </View>
+        <View style={{ height: 48 }} />  
+
         {/* Add more graph sections as needed */}
-        <DefectPieCharts />
+        <View style={[styles.cardWithBorder]}>
+          <DefectsReopenedChart />
+        </View>
+        <View style={[styles.cardWithBorder]}>
+          <DefectDistributionChart />
+        </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -347,6 +359,19 @@ const styles = StyleSheet.create({
   selectionBtnTextActive: {
     color: '#fff',
   },
+  cardWithBorder: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom:25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
 });
 
-export default ProjectDetailsScreen;
+export default Project;

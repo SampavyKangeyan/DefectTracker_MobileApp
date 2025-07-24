@@ -5,9 +5,20 @@ import { createStackNavigator } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
 import LoginScreen from './src/screens/login';
 import DashboardScreen from './src/screens/dashboard';
-import ProjectDetailsScreen from './src/screens/project';
+import Project from './src/screens/project';
 
-const Stack = createStackNavigator();
+// Define the navigation parameter types
+export type RootStackParamList = {
+  Login: undefined;
+  Dashboard: undefined;
+  ProjectDetails: {
+    id: string;
+    name: string;
+    severity: string;
+  };
+};
+
+const Stack = createStackNavigator<RootStackParamList>();
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -19,7 +30,7 @@ function App() {
         <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
-          <Stack.Screen name="ProjectDetails" component={ProjectDetailsScreen} />
+          <Stack.Screen name="ProjectDetails" component={Project} />
         </Stack.Navigator>
       </View>
     </NavigationContainer>
@@ -29,6 +40,7 @@ function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+   
   },
 });
 

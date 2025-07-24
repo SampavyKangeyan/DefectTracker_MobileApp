@@ -29,7 +29,8 @@ const DefectsByModule: React.FC = () => {
   const sliceColors = MODULE_DEFECTS.map(m => m.color);
 
   return (
-    <View style={styles.card}>
+    // <View style={styles.card}>
+    <View>
       <Text style={styles.title}>Defects by Module</Text>
       <View style={styles.pieRow}>
         <PieChart
@@ -55,19 +56,19 @@ const DefectsByModule: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    margin: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-    width: '92%',
-    alignSelf: 'center',
-  },
+//   card: {
+//     backgroundColor: '#fff',
+//     borderRadius: 16,
+//     padding: 16,
+//     margin: 16,
+//     shadowColor: '#000',
+//     shadowOffset: { width: 0, height: 2 },
+//     shadowOpacity: 0.08,
+//     shadowRadius: 6,
+//     elevation: 3,
+//     width: '92%',
+//     alignSelf: 'center',
+//   },
   title: {
     fontSize: 17,
     fontWeight: 'bold',

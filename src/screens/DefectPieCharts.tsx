@@ -1,8 +1,8 @@
 import React from 'react';
-import { StyleSheet, View, Text, ScrollView, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, Dimensions } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 
-const DefectPieCharts: React.FC = () => {
+export const DefectsReopenedChart: React.FC = () => {
   const screenWidth = Dimensions.get('window').width;
   const chartWidth = screenWidth - 40;
 
@@ -22,6 +22,36 @@ const DefectPieCharts: React.FC = () => {
       legendFontSize: 14,
     },
   ];
+
+  const chartConfig = {
+    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+  };
+
+  return (
+    <View>
+      <Text style={styles.title}>Defects Reopened Multiple Times</Text>
+      <PieChart
+        data={reopenedData}
+        width={chartWidth}
+        height={220}
+        chartConfig={chartConfig}
+        accessor="population"
+        backgroundColor="transparent"
+        paddingLeft="15"
+        absolute
+        hasLegend={true}
+        center={[0, 0]}
+        // Add white border between slices
+        style={styles.pieWithBorder}
+      />
+    </View>
+  );
+};
+
+export const DefectDistributionChart: React.FC = () => {
+  const screenWidth = Dimensions.get('window').width;
+  const chartWidth = screenWidth - 40;
 
   const typeData = [
     {
@@ -60,54 +90,57 @@ const DefectPieCharts: React.FC = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.chartBlock}>
-        <Text style={styles.title}>Defects Reopened Multiple Times</Text>
-        <PieChart
-          data={reopenedData}
-          width={chartWidth}
-          height={220}
-          chartConfig={chartConfig}
-          accessor="population"
-          backgroundColor="transparent"
-          paddingLeft="15"
-          absolute
-        />
-      </View>
+    <View >
+      <Text style={styles.title}>Defect Distribution by Type</Text>
+      <PieChart
+        data={typeData}
+        width={chartWidth}
+        height={220}
+        chartConfig={chartConfig}
+        accessor="population"
+        backgroundColor="transparent"
+        paddingLeft="15"
+        absolute
+        hasLegend={true}
+        center={[0, 0]}
+        // Add white border between slices
+        style={styles.pieWithBorder}
+      />
+      <Text style={[styles.total, { marginTop: 8 }]}>459 Total Defects</Text>
+      <Text style={styles.common}>245 Most Common: Functionality</Text>
+    </View>
+  );
+};
 
-      <View style={styles.chartBlock}>
-        <Text style={styles.title}>Defect Distribution by Type</Text>
-        <PieChart
-          data={typeData}
-          width={chartWidth}
-          height={220}
-          chartConfig={chartConfig}
-          accessor="population"
-          backgroundColor="transparent"
-          paddingLeft="15"
-          absolute
-        />
-        <Text style={[styles.total, { marginTop: 8 }]}>459 Total Defects</Text>
-        <Text style={styles.common}>245 Most Common: Functionality</Text>
+const DefectPieCharts: React.FC = () => {
+  return (
+    <View>
+      <View style={styles.chartContainer}>
+        <DefectsReopenedChart />
       </View>
-    </ScrollView>
+      <View style={styles.chartContainer}>
+        <DefectDistributionChart />
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    padding: 20,
+  chartContainer: {
+    marginBottom:40
   },
-  chartBlock: {
-    marginBottom: 40,
-    alignItems: 'center',
-    width: '100%',
+  pieWithBorder: {
+    // Add white border between pie slices
+    borderWidth: 4,
+    borderColor: '#fff',
+    borderRadius: 110,
+    overflow: 'hidden',
   },
   title: {
     fontSize: 18,
     marginBottom: 12,
     fontWeight: '600',
+    color: '#222',
   },
   legend: {
     fontSize: 14,
