@@ -19,7 +19,7 @@ const PROJECTS: Project[] = [
   { id: '1', name: 'Defect Tracker', severity: 'High Risk' },
   { id: '2', name: 'QA testing', severity: 'High Risk' },
   { id: '3', name: 'Dashbord testing', severity: 'Low Risk' },
-  { id: '4', name: 'Project 1❕', severity: 'Low Risk' },
+  { id: '4', name: 'Project 1', severity: 'Low Risk' },
   { id: '5', name: 'Project 2', severity: 'High Risk' },
   { id: '6', name: 'Project 3', severity: 'Low Risk' },
   { id: '7', name: 'Project 4', severity: 'Low Risk' },
@@ -271,10 +271,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   filterBtnActive: {
-    backgroundColor: '#1976d2',
+    backgroundColor: '#1E3A8A',
   },
   filterBtnText: {
-    color: '#1976d2',
+    color: '#1E3A8A',
     fontWeight: 'bold',
     position: 'relative',
   },
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
   backButton: {
     paddingHorizontal: 16,
     paddingVertical: 6,
-    backgroundColor: '#1976d2',
+    backgroundColor: '#1E3A8A',
     borderRadius: 16,
     alignSelf: 'flex-start',
   },

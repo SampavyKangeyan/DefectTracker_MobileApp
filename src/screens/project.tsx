@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -8,7 +8,7 @@ import { RouteProp } from '@react-navigation/native';
 import { DefectsReopenedChart, DefectDistributionChart } from './DefectPieCharts';
 import DefectDensitySeverity from './DefectDensitySeverity';
 import DefectsByModule from './DefectsByModule';
-import DefectToRemarkRatio from './DefectToRemarkRatio';
+import DefectToRemarkRatio from './DefectToRemarkRatio';  
 import TimeToFindDefects from './TimeToFindDefects';
 
 // Import the navigation types from App.tsx
@@ -39,8 +39,8 @@ const DEFECT_DATA = [
     breakdown: [
       { label: 'REOPEN', color: '#f44336', count: 3 },
       { label: 'NEW', color: '#3f51b5', count: 50 },
-      { label: 'OPEN', color: '#4caf50', count: 5 },
-      { label: 'FIXED', color: '#8bc34a', count: 14 },
+      { label: 'OPEN', color: '#3f9d42ff', count: 5 },
+      { label: 'FIXED', color: '#00ff22ff', count: 14 },
       { label: 'CLOSED', color: '#607d8b', count: 37 },
       { label: 'REJECTED', color: '#b71c1c', count: 0 },
       { label: 'DUPLICATE', color: '#616161', count: 3 },
@@ -97,7 +97,12 @@ const PROJECTS = [
 ];
 
 const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
-  const { id, name, severity } = route.params;
+  // Use local state for selected project
+  const [selectedProject, setSelectedProject] = useState({
+    id: route.params.id,
+    name: route.params.name,
+    severity: route.params.severity,
+  });
 
   const handleBack = () => {
     navigation.goBack();
@@ -106,6 +111,9 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
   // Responsive logic for statusRow
   const screenWidth = Dimensions.get('window').width;
   const isSmallScreen = screenWidth < 400;
+
+  // Get defect data for selected project severity
+  const defectData = DEFECT_DATA.find(d => d.severity === selectedProject.severity);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#f7fafd', paddingVertical:20 }} >
@@ -123,10 +131,10 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
             {PROJECTS.map((proj) => (
               <TouchableOpacity
                 key={proj.id + proj.name}
-                style={[styles.selectionBtn, name === proj.name && styles.selectionBtnActive]}
+                style={[styles.selectionBtn, selectedProject.name === proj.name && styles.selectionBtnActive]}
                 onPress={() => {
-                  if (proj.name !== name) {
-                    navigation.replace('ProjectDetails', {
+                  if (proj.name !== selectedProject.name) {
+                    setSelectedProject({
                       id: proj.id,
                       name: proj.name,
                       severity: proj.severity,
@@ -134,35 +142,34 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
                   }
                 }}
               >
-                <Text style={[styles.selectionBtnText, name === proj.name && styles.selectionBtnTextActive]}>{proj.name}</Text>
+                <Text style={[styles.selectionBtnText, selectedProject.name === proj.name && styles.selectionBtnTextActive]}>{proj.name}</Text>
               </TouchableOpacity>
             ))}
           </RNScrollView>
         </View>
-        <Text style={styles.title}>{name}</Text>
-        <Text style={styles.severity}>Severity: {severity}</Text>
+        <Text style={styles.title}>{selectedProject.name}</Text>
+        <Text style={styles.severity}>Severity: {selectedProject.severity}</Text>
         {/* Defect Severity Breakdown Tables */}
         <Text style={styles.sectionTitle}>Defect Severity Breakdown</Text>
         <View style={[styles.statusRow, isSmallScreen && { flexDirection: 'column' }]}>
-          {DEFECT_DATA.map((def, idx) => (
+          {defectData ? (
             <View
-              key={def.severity}
+              key={defectData.severity}
               style={[
                 styles.breakdownCard,
                 { 
-                  borderColor: def.borderColor, 
+                  borderColor: defectData.borderColor, 
                   backgroundColor: '#fff', 
-                  shadowColor: def.color,
-                  borderWidth: 2, // Ensure border is visible
-                },
-                idx !== DEFECT_DATA.length - 1 ? { marginBottom: 16 } : null
+                  shadowColor: defectData.color,
+                  borderWidth: 2,
+                }
               ]}
             >
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10}}>
-                <Text style={[styles.breakdownTitle, { color: def.color }]}>{`Defects on ${def.severity.split(' ')[0]}`}</Text>
-                <Text style={styles.breakdownTotal}>{`Total: ${def.total}`}</Text>
+                <Text style={[styles.breakdownTitle, { color: defectData.color }]}>{`Defects on ${defectData.severity.split(' ')[0]}`}</Text>
+                <Text style={styles.breakdownTotal}>{`Total: ${defectData.total}`}</Text>
               </View>
-              {def.breakdown.map((item) => (
+              {defectData.breakdown.map((item) => (
                 <View key={item.label} style={styles.breakdownRowItem}>
                   <View style={[styles.dot, { backgroundColor: item.color }]} />
                   <Text style={styles.breakdownLabel}>{item.label}</Text>
@@ -173,7 +180,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
                 <Text style={styles.chartBtnText}>View Chart</Text>
               </TouchableOpacity>
             </View>
-          ))}
+          ) : null}
         </View>
         {/* Insert Defect Density/Severity and Defects by Module here */}
         <View style={[styles.cardWithBorder]}>
@@ -183,7 +190,6 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
           <DefectsByModule />
         </View>
         <View style={{ height: 48 }} />  
-
         {/* Add more graph sections as needed */}
         <View style={[styles.cardWithBorder]}>
           <DefectsReopenedChart />
@@ -242,7 +248,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#1976d2',
+    color: '#1E3A8A',
   },
   graphPlaceholder: {
     height: 140,
@@ -316,7 +322,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   chartBtnText: {
-    color: '#1976d2',
+    color: '#1E3A8A',
     fontWeight: 'bold',
     fontSize: 13,
   },
@@ -349,7 +355,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   selectionBtnActive: {
-    backgroundColor: '#1976d2',
+    backgroundColor: '#1E3A8A',
   },
   selectionBtnText: {
     color: '#222',

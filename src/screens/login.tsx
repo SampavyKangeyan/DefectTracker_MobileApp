@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet,
   Alert, KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -70,9 +71,21 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={styles.container}>
+          {/* Back Button */}
+          <TouchableOpacity
+            onPress={() => navigation.replace('Intro')}
+            style={styles.iconButton}
+            accessibilityLabel="Back"
+          >
+            <Icon name="arrow-left" size={28} color="#222" />
+          </TouchableOpacity>
           <View style={styles.card}>
             <View style={styles.iconCircle}>
-              <Icon name="bug-outline" size={32} color="#1976d2" />
+              <Image
+                source={require('../../assets/bug.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
             </View>
             <Text style={styles.title}>DefectTracker Pro</Text>
             <Text style={styles.subtitle}>Sign in to your account</Text>
@@ -157,6 +170,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 20,
+    position: 'relative',
+  },
+  iconButton: {
+    position: 'absolute',
+    top: 32,
+    left: 18,
+    zIndex: 10,
+    padding: 6,
   },
   card: {
     width: '90%',
@@ -168,22 +189,24 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   iconCircle: {
-    backgroundColor: '#e6f0ff',
+    backgroundColor: '#aac1ffff',
     borderRadius: 40,
     width: 64,
     height: 64,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
+    overflow: 'hidden',
   },
-  lockIcon: {
-    fontSize: 32,
+  logoImage: {
+    width: 40,
+    height: 40,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 4,
-    color: '#222',
+    color: '#1E3A8A',
   },
   subtitle: {
     fontSize: 15,
@@ -252,11 +275,12 @@ const styles = StyleSheet.create({
     color: '#444',
   },
   forgotText: {
-    color: '#1976d2',
+    color: '#1E3A8A',
     fontSize: 13,
+    textDecorationLine:'underline',
   },
   button: {
-    backgroundColor: '#1976d2',
+    backgroundColor: '#2D6A4F',
     borderRadius: 8,
     paddingVertical: 12,
     width: '100%',

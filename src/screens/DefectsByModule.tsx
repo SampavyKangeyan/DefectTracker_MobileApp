@@ -18,7 +18,7 @@ const MODULE_DEFECTS: ModuleDefect[] = [
   { name: 'Releases', value: 35, color: '#ff7043' },
   { name: 'Project 22', value: 22, color: '#c0ca33' },
   { name: 'Main Template', value: 4, color: '#8d6e63' },
-  { name: 'Dashboard', value: 17, color: '#1976d2' },
+  { name: 'Dashboard', value: 17, color: '#1E3A8A' },
 ];
 
 const total = MODULE_DEFECTS.reduce((sum, m) => sum + m.value, 0);
