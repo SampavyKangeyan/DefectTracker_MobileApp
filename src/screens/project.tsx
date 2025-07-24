@@ -3,9 +3,10 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { ScrollView as RNScrollView } from 'react-native';
 import DefectPieCharts from './DefectPieCharts';
+import DefectDensitySeverity from './DefectDensitySeverity';
+import DefectsByModule from './DefectsByModule';
 import DefectToRemarkRatio from './DefectToRemarkRatio';
 import TimeToFindDefects from './TimeToFindDefects';
-import DefectsByModule from './DefectsByModule';
 
 interface ProjectDetailsProps {
   route: {
@@ -131,10 +132,18 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
         <Text style={styles.severity}>Severity: {severity}</Text>
         {/* Defect Severity Breakdown Tables */}
         <Text style={styles.sectionTitle}>Defect Severity Breakdown</Text>
-        <View style={[styles.statusRow, isSmallScreen && { flexDirection: 'column' }]}> {/* Responsive row/column */}
+        <View style={[styles.statusRow, isSmallScreen && { flexDirection: 'column' }]}>
           {DEFECT_DATA.map((def, idx) => (
-            <View key={def.severity} style={[styles.breakdownCard, { borderColor: def.borderColor, backgroundColor: '#fff', shadowColor: def.color }]}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6}}>
+            <View
+              key={def.severity}
+              style={[
+                styles.breakdownCard,
+                { borderColor: def.borderColor, backgroundColor: '#fff', shadowColor: def.color },
+                // Add marginBottom except for last card
+                idx !== DEFECT_DATA.length - 1 ? { marginBottom: 16 } : null
+              ]}
+            >
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10}}>
                 <Text style={[styles.breakdownTitle, { color: def.color }]}>{`Defects on ${def.severity.split(' ')[0]}`}</Text>
                 <Text style={styles.breakdownTotal}>{`Total: ${def.total}`}</Text>
               </View>
@@ -151,6 +160,9 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
             </View>
           ))}
         </View>
+        {/* Insert Defect Density/Severity and Defects by Module here */}
+        <DefectDensitySeverity />
+        <DefectsByModule />
         <View style={{ height: 48 }} />
         {/* Placeholder for graphs */}
         <View style={styles.graphSection}>
@@ -163,15 +175,7 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
         </View>
         <View style={styles.graphSection}>
           <Text style={styles.graphTitle}>Defect to Remark Ratio</Text>
-          <DefectToRemarkRatio />
-        </View>
-        <View style={styles.graphSection}>
-          <Text style={styles.graphTitle}>Time to Find Defects</Text>
-          <TimeToFindDefects />
-        </View>
-        <View style={styles.graphSection}>
-          <Text style={styles.graphTitle}>Defects by Module</Text>
-          <DefectsByModule />
+          <View style={styles.graphPlaceholder} />
         </View>
         {/* Add more graph sections as needed */}
         <DefectPieCharts />
