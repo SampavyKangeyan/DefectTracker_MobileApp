@@ -2,6 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { ScrollView as RNScrollView } from 'react-native';
+import DefectPieCharts from './DefectPieCharts';
+import DefectToRemarkRatio from './DefectToRemarkRatio';
+import TimeToFindDefects from './TimeToFindDefects';
+import DefectsByModule from './DefectsByModule';
 
 interface ProjectDetailsProps {
   route: {
@@ -73,11 +77,11 @@ const PROJECTS = [
   { id: '8', name: 'Project 5', severity: 'Medium Risk' },
   { id: '9', name: 'Project 6', severity: 'Medium Risk' },
   { id: '10', name: 'Project 7', severity: 'Medium Risk' },
-  { id: '11', name: 'Project 8', severity: 'Low Risk' },
-  { id: '12', name: 'Project 9', severity: 'Medium Risk' },
-  { id: '13', name: 'Project 10', severity: 'Low Risk' },
-  { id: '14', name: 'Project 11', severity: 'Medium Risk' },
-  { id: '15', name: 'Project 12', severity: 'Low Risk' },
+  // { id: '11', name: 'Project 8', severity: 'Low Risk' },
+  // { id: '12', name: 'Project 9', severity: 'Medium Risk' },
+  // { id: '13', name: 'Project 10', severity: 'Low Risk' },
+  // { id: '14', name: 'Project 11', severity: 'Medium Risk' },
+  // { id: '15', name: 'Project 12', severity: 'Low Risk' },
 ];
 
 const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
@@ -92,76 +96,87 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
   const isSmallScreen = screenWidth < 400;
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: '#f7fafd' }}>
       <View style={styles.topBar}>
         <TouchableOpacity onPress={handleBack} style={styles.iconButton} accessibilityLabel="Back">
           <Icon name="arrow-back" size={28} color="#222" />
         </TouchableOpacity>
         <Text style={styles.header}>Project Overview</Text>
       </View>
-      {/* Project Selection Bar */}
-      <View style={styles.selectionBarContainer}>
-        <Text style={styles.selectionLabel}>Project Selection</Text>
-        <RNScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.selectionScroll}>
-          {PROJECTS.map((proj) => (
-            <TouchableOpacity
-              key={proj.id + proj.name}
-              style={[styles.selectionBtn, name === proj.name && styles.selectionBtnActive]}
-              onPress={() => {
-                if (proj.name !== name) {
-                  navigation.replace('ProjectDetails', {
-                    id: proj.id,
-                    name: proj.name,
-                    severity: proj.severity,
-                  });
-                }
-              }}
-            >
-              <Text style={[styles.selectionBtnText, name === proj.name && styles.selectionBtnTextActive]}>{proj.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </RNScrollView>
-      </View>
-      <Text style={styles.title}>{name}</Text>
-      <Text style={styles.severity}>Severity: {severity}</Text>
-      {/* Defect Severity Breakdown Tables */}
-      <Text style={styles.sectionTitle}>Defect Severity Breakdown</Text>
-      <View style={[styles.statusRow, isSmallScreen && { flexDirection: 'column' }]}> {/* Responsive row/column */}
-        {DEFECT_DATA.map((def, idx) => (
-          <View key={def.severity} style={[styles.breakdownCard, { borderColor: def.borderColor, backgroundColor: '#fff', shadowColor: def.color }]}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6}}>
-              <Text style={[styles.breakdownTitle, { color: def.color }]}>{`Defects on ${def.severity.split(' ')[0]}`}</Text>
-              <Text style={styles.breakdownTotal}>{`Total: ${def.total}`}</Text>
-            </View>
-            {def.breakdown.map((item) => (
-              <View key={item.label} style={styles.breakdownRowItem}>
-                <View style={[styles.dot, { backgroundColor: item.color }]} />
-                <Text style={styles.breakdownLabel}>{item.label}</Text>
-                <Text style={styles.breakdownCount}>{item.count}</Text>
-              </View>
+      <ScrollView style={styles.container} contentContainerStyle={{ paddingTop: 0 }}>
+        {/* Project Selection Bar */}
+        <View style={styles.selectionBarContainer}>
+          <Text style={styles.selectionLabel}>Project Selection</Text>
+          <RNScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.selectionScroll}>
+            {PROJECTS.map((proj) => (
+              <TouchableOpacity
+                key={proj.id + proj.name}
+                style={[styles.selectionBtn, name === proj.name && styles.selectionBtnActive]}
+                onPress={() => {
+                  if (proj.name !== name) {
+                    navigation.replace('ProjectDetails', {
+                      id: proj.id,
+                      name: proj.name,
+                      severity: proj.severity,
+                    });
+                  }
+                }}
+              >
+                <Text style={[styles.selectionBtnText, name === proj.name && styles.selectionBtnTextActive]}>{proj.name}</Text>
+              </TouchableOpacity>
             ))}
-            <TouchableOpacity style={styles.chartBtn}>
-              <Text style={styles.chartBtnText}>View Chart</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-      </View>
-      <View style={{ height: 48 }} />
-      {/* Placeholder for graphs */}
-      <View style={styles.graphSection}>
-        <Text style={styles.graphTitle}>Defect Density</Text>
-        <View style={styles.graphPlaceholder} />
-      </View>
-      <View style={styles.graphSection}>
-        <Text style={styles.graphTitle}>Defect Severity Index</Text>
-        <View style={styles.graphPlaceholder} />
-      </View>
-      <View style={styles.graphSection}>
-        <Text style={styles.graphTitle}>Defect to Remark Ratio</Text>
-        <View style={styles.graphPlaceholder} />
-      </View>
-      {/* Add more graph sections as needed */}
-    </ScrollView>
+          </RNScrollView>
+        </View>
+        <Text style={styles.title}>{name}</Text>
+        <Text style={styles.severity}>Severity: {severity}</Text>
+        {/* Defect Severity Breakdown Tables */}
+        <Text style={styles.sectionTitle}>Defect Severity Breakdown</Text>
+        <View style={[styles.statusRow, isSmallScreen && { flexDirection: 'column' }]}> {/* Responsive row/column */}
+          {DEFECT_DATA.map((def, idx) => (
+            <View key={def.severity} style={[styles.breakdownCard, { borderColor: def.borderColor, backgroundColor: '#fff', shadowColor: def.color }]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6}}>
+                <Text style={[styles.breakdownTitle, { color: def.color }]}>{`Defects on ${def.severity.split(' ')[0]}`}</Text>
+                <Text style={styles.breakdownTotal}>{`Total: ${def.total}`}</Text>
+              </View>
+              {def.breakdown.map((item) => (
+                <View key={item.label} style={styles.breakdownRowItem}>
+                  <View style={[styles.dot, { backgroundColor: item.color }]} />
+                  <Text style={styles.breakdownLabel}>{item.label}</Text>
+                  <Text style={styles.breakdownCount}>{item.count}</Text>
+                </View>
+              ))}
+              <TouchableOpacity style={styles.chartBtn}>
+                <Text style={styles.chartBtnText}>View Chart</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+        <View style={{ height: 48 }} />
+        {/* Placeholder for graphs */}
+        <View style={styles.graphSection}>
+          <Text style={styles.graphTitle}>Defect Density</Text>
+          <View style={styles.graphPlaceholder} />
+        </View>
+        <View style={styles.graphSection}>
+          <Text style={styles.graphTitle}>Defect Severity Index</Text>
+          <View style={styles.graphPlaceholder} />
+        </View>
+        <View style={styles.graphSection}>
+          <Text style={styles.graphTitle}>Defect to Remark Ratio</Text>
+          <DefectToRemarkRatio />
+        </View>
+        <View style={styles.graphSection}>
+          <Text style={styles.graphTitle}>Time to Find Defects</Text>
+          <TimeToFindDefects />
+        </View>
+        <View style={styles.graphSection}>
+          <Text style={styles.graphTitle}>Defects by Module</Text>
+          <DefectsByModule />
+        </View>
+        {/* Add more graph sections as needed */}
+        <DefectPieCharts />
+      </ScrollView>
+    </View>
   );
 };
 
@@ -174,23 +189,24 @@ const styles = StyleSheet.create({
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginTop: 8,
+    marginBottom: 4,
     minHeight: 48,
+    paddingHorizontal: 0,
     backgroundColor: 'transparent',
   },
   iconButton: {
     padding: 6,
     marginRight: 8,
-    alignSelf: 'center',
-    marginTop: 20,
+    marginTop: 30,
   },
   header: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#222',
-    marginBottom: 0,
-    marginTop: 20,
     alignSelf: 'center',
+    marginTop: 30,
+    marginBottom: 0,
   },
   title: {
     fontSize: 28,
@@ -329,4 +345,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProjectDetailsScreen; 
+export default ProjectDetailsScreen;

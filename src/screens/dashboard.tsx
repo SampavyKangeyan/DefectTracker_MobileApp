@@ -26,11 +26,11 @@ const PROJECTS: Project[] = [
   { id: '8', name: 'Project 5', severity: 'Medium Risk' },
   { id: '9', name: 'Project 6', severity: 'Medium Risk' },
   { id: '10', name: 'Project 7', severity: 'Medium Risk' },
-  { id: '11', name: 'Project 8', severity: 'Low Risk' },
-  { id: '12', name: 'Project 9', severity: 'Medium Risk' },
-  { id: '13', name: 'Project 10', severity: 'Low Risk' },
-  { id: '14', name: 'Project 11', severity: 'Medium Risk' },
-  { id: '15', name: 'Project 12', severity: 'Low Risk' },
+  // { id: '11', name: 'Project 8', severity: 'Low Risk' },
+  // { id: '12', name: 'Project 9', severity: 'Medium Risk' },
+  // { id: '13', name: 'Project 10', severity: 'Low Risk' },
+  // { id: '14', name: 'Project 11', severity: 'Medium Risk' },
+  // { id: '15', name: 'Project 12', severity: 'Low Risk' },
   // Add more projects as needed
 ];
 
