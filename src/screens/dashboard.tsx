@@ -88,10 +88,13 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
   return (
     <View style={{ flex: 1, backgroundColor: '#f7fafd' }}>
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={handleBack} style={styles.iconButton} accessibilityLabel="Back">
-          <Icon name="arrow-back" size={28} color="#222" />
+        <View style={{flexDirection: 'row', alignItems: 'flex-start'}}>
+          <TouchableOpacity onPress={handleBack} style={styles.iconButton} accessibilityLabel="Back">
+          <Icon name="arrow-back" size={18} color="#222" />
         </TouchableOpacity>
-        <Text style={styles.header}>Dashboard Overview</Text>
+        <Text style={styles.header}>Dashboard</Text>
+        </View>    
+        <Text style={styles.appTitle}>DefectTracker Pro</Text>
       </View>
       <ScrollView style={styles.container} contentContainerStyle={{ paddingTop: 0 }}>
         <Text style={styles.subheader}>
@@ -187,16 +190,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f7fafd',
-    padding: 20,
+    padding: 10,
   },
   header: {
-    fontSize: 28,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#222',
     alignSelf: 'center',
+    justifyContent: 'center',
     // Remove marginTop and marginBottom for better alignment in row
     marginTop: 30,
     marginBottom: 0,
+    marginRight:20
   },
   subheader: {
     fontSize: 15,
@@ -271,10 +276,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   filterBtnActive: {
-    backgroundColor: '#1E3A8A',
+    backgroundColor: '#2D6A4F',
   },
   filterBtnText: {
-    color: '#1E3A8A',
+    color: '#2D6A4F',
     fontWeight: 'bold',
     position: 'relative',
   },
@@ -292,13 +297,12 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     padding: 6,
-    marginRight: 8,
     marginTop: 30,
   },
   backButton: {
     paddingHorizontal: 16,
     paddingVertical: 6,
-    backgroundColor: '#1E3A8A',
+    backgroundColor: '#2D6A4F',
     borderRadius: 16,
     alignSelf: 'flex-start',
   },
@@ -352,6 +356,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 13,
+  },
+  appTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2D6A4F',
+    textAlign: 'center',
+    marginTop: 30,
+    marginBottom: 0,
+    letterSpacing: 1,
   },
 });
 

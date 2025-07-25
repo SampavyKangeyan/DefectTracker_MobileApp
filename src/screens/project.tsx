@@ -10,6 +10,7 @@ import DefectDensitySeverity from './DefectDensitySeverity';
 import DefectsByModule from './DefectsByModule';
 import DefectToRemarkRatio from './DefectToRemarkRatio';  
 import TimeToFindDefects from './TimeToFindDefects';
+import DefectDensityMeter from './DefectDensityMeter';
 
 // Import the navigation types from App.tsx
 type RootStackParamList = {
@@ -49,13 +50,13 @@ const DEFECT_DATA = [
   {
     severity: 'Medium Risk',
     color: '#fbc02d',
-    borderColor: '#fbc02d',
+    borderColor: '#f1fb2dff',
     total: 237,
     breakdown: [
       { label: 'REOPEN', color: '#f44336', count: 5 },
       { label: 'NEW', color: '#3f51b5', count: 126 },
-      { label: 'OPEN', color: '#4caf50', count: 10 },
-      { label: 'FIXED', color: '#8bc34a', count: 33 },
+      { label: 'OPEN', color: '#3f9d42ff', count: 10 },
+      { label: 'FIXED', color: '#00ff22ff', count: 33 },
       { label: 'CLOSED', color: '#607d8b', count: 60 },
       { label: 'REJECTED', color: '#b71c1c', count: 2 },
       { label: 'DUPLICATE', color: '#616161', count: 1 },
@@ -69,8 +70,8 @@ const DEFECT_DATA = [
     breakdown: [
       { label: 'REOPEN', color: '#f44336', count: 1 },
       { label: 'NEW', color: '#3f51b5', count: 57 },
-      { label: 'OPEN', color: '#4caf50', count: 0 },
-      { label: 'FIXED', color: '#8bc34a', count: 10 },
+      { label: 'OPEN', color: '#3f9d42ff', count: 0 },
+      { label: 'FIXED', color: '#00ff22ff', count: 10 },
       { label: 'CLOSED', color: '#607d8b', count: 24 },
       { label: 'REJECTED', color: '#b71c1c', count: 1 },
       { label: 'DUPLICATE', color: '#616161', count: 3 },
@@ -116,12 +117,15 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
   const defectData = DEFECT_DATA.find(d => d.severity === selectedProject.severity);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f7fafd', paddingVertical:20 }} >
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f7fafd' }} >
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={handleBack} style={styles.iconButton} accessibilityLabel="Back">
-          <Icon name="arrow-back" size={28} color="#222" />
+        <View style={{flexDirection: 'row', alignItems: 'flex-start'}}>
+          <TouchableOpacity onPress={handleBack} style={styles.iconButton} accessibilityLabel="Back">
+          <Icon name="arrow-back" size={18} color="#222" />
         </TouchableOpacity>
-        <Text style={styles.header}>Project Overview</Text>
+        <Text style={styles.header}>Project overview</Text>
+        </View>    
+        <Text style={styles.appTitle}>DefectTracker Pro</Text>
       </View>
       <ScrollView style={styles.container} contentContainerStyle={{ paddingTop: 0 }}>
         {/* Project Selection Bar */}
@@ -182,6 +186,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
             </View>
           ) : null}
         </View>
+        <DefectDensityMeter value={0} />
         {/* Insert Defect Density/Severity and Defects by Module here */}
         <View style={[styles.cardWithBorder]}>
           <DefectDensitySeverity />
@@ -206,12 +211,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f7fafd',
-    padding: 20,
+    padding: 10,
   },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 1,
     marginBottom: 4,
     minHeight: 48,
     paddingHorizontal: 0,
@@ -219,16 +224,18 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     padding: 6,
-    marginRight: 8,
-    marginTop: 30,
+    marginTop: 10,
   },
   header: {
-    fontSize: 28,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#222',
     alignSelf: 'center',
-    marginTop: 30,
+    justifyContent: 'center',
+    // Remove marginTop and marginBottom for better alignment in row
+    marginTop: 10,
     marginBottom: 0,
+    marginRight:20
   },
   title: {
     fontSize: 28,
@@ -248,7 +255,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#1E3A8A',
+    color: '#2D6A4F',
   },
   graphPlaceholder: {
     height: 140,
@@ -322,7 +329,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   chartBtnText: {
-    color: '#1E3A8A',
+    color: '#2D6A4F',
     fontWeight: 'bold',
     fontSize: 13,
   },
@@ -355,7 +362,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   selectionBtnActive: {
-    backgroundColor: '#1E3A8A',
+    backgroundColor: '#2D6A4F',
   },
   selectionBtnText: {
     color: '#222',
@@ -377,6 +384,15 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: '#e0e0e0',
+  },
+    appTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2D6A4F',
+    textAlign: 'center',
+    marginTop: 10,
+    marginBottom: 0,
+    letterSpacing: 1,
   },
 });
 

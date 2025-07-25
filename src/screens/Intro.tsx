@@ -22,7 +22,7 @@ const IntroScreen = ({ navigation }: { navigation: any }) => {
       >
         <Text style={styles.buttonText}>Get Started</Text>
       </TouchableOpacity>
-      <Text style={styles.footer}>© 2024 DefectTracker Pro</Text>
+      <Text style={styles.footer}>© {new Date().getFullYear()} DefectTracker Pro</Text>
     </View>
   );
 };
@@ -30,13 +30,13 @@ const IntroScreen = ({ navigation }: { navigation: any }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5', // Light Gray
+    backgroundColor: '#2D6A4F', // Light Gray
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
   },
   logoCircle: {
-    backgroundColor: '#aac1ffff', 
+    backgroundColor: '#ffffff', 
     borderRadius: 48,
     width: 96,
     height: 96,
@@ -44,21 +44,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   logoImage: {
     width: 72,
     height: 72,
+    tintColor: '#2D6A4F',
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#1E3A8A', // Navy Blue
+    color: '#ffffff', // Navy Blue
     marginBottom: 12,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#2D6A4F', // Teal
+    color: '#ffffff', // Teal
     marginBottom: 32,
     textAlign: 'center',
     fontWeight: '500',
@@ -69,7 +75,14 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 40,
     marginBottom: 24,
-    elevation: 2,
+    elevation: 3,
+    borderColor: '#ffffff',
+    borderWidth: 2,
+    padding: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 5, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   buttonText: {
     color: '#fff',
@@ -78,7 +91,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   footer: {
-    color: '#9CA3AF', // Medium Gray
+    color: '#ffffffff', // Medium Gray
     fontSize: 13,
     marginTop: 24,
     textAlign: 'center',
