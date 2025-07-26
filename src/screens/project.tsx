@@ -6,11 +6,12 @@ import { ScrollView as RNScrollView } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { DefectsReopenedChart, DefectDistributionChart } from './DefectPieCharts';
-import DefectDensitySeverity from './DefectDensitySeverity';
 import DefectsByModule from './DefectsByModule';
 import DefectToRemarkRatio from './DefectToRemarkRatio';  
 import TimeToFindDefects from './TimeToFindDefects';
 import DefectDensityMeter from './DefectDensityMeter';
+import DefectSeverityIndex from './DefectSeverityIndex';
+
 
 // Import the navigation types from App.tsx
 type RootStackParamList = {
@@ -117,40 +118,41 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
   const defectData = DEFECT_DATA.find(d => d.severity === selectedProject.severity);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f7fafd' }} >
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f7fafd' }}>
       <View style={styles.topBar}>
-        <View style={{flexDirection: 'row', alignItems: 'flex-start'}}>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
           <TouchableOpacity onPress={handleBack} style={styles.iconButton} accessibilityLabel="Back">
-          <Icon name="arrow-back" size={18} color="#222" />
-        </TouchableOpacity>
-        <Text style={styles.header}>Project overview</Text>
-        </View>    
+            <Icon name="arrow-back" size={18} color="#222" />
+          </TouchableOpacity>
+          <Text style={styles.header}>Project overview</Text>
+        </View>
         <Text style={styles.appTitle}>DefectTracker Pro</Text>
+      </View>
+      {/* Fix the selection bar at the top, outside the ScrollView */}
+      <View style={styles.selectionBarContainer}>
+        <Text style={styles.selectionLabel}>Project Selection</Text>
+        <RNScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.selectionScroll}>
+          {PROJECTS.map((proj) => (
+            <TouchableOpacity
+              key={proj.id + proj.name}
+              style={[styles.selectionBtn, selectedProject.name === proj.name && styles.selectionBtnActive]}
+              onPress={() => {
+                if (proj.name !== selectedProject.name) {
+                  setSelectedProject({
+                    id: proj.id,
+                    name: proj.name,
+                    severity: proj.severity,
+                  });
+                }
+              }}
+            >
+              <Text style={[styles.selectionBtnText, selectedProject.name === proj.name && styles.selectionBtnTextActive]}>{proj.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </RNScrollView>
       </View>
       <ScrollView style={styles.container} contentContainerStyle={{ paddingTop: 0 }}>
         {/* Project Selection Bar */}
-        <View style={styles.selectionBarContainer}>
-          <Text style={styles.selectionLabel}>Project Selection</Text>
-          <RNScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.selectionScroll}>
-            {PROJECTS.map((proj) => (
-              <TouchableOpacity
-                key={proj.id + proj.name}
-                style={[styles.selectionBtn, selectedProject.name === proj.name && styles.selectionBtnActive]}
-                onPress={() => {
-                  if (proj.name !== selectedProject.name) {
-                    setSelectedProject({
-                      id: proj.id,
-                      name: proj.name,
-                      severity: proj.severity,
-                    });
-                  }
-                }}
-              >
-                <Text style={[styles.selectionBtnText, selectedProject.name === proj.name && styles.selectionBtnTextActive]}>{proj.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </RNScrollView>
-        </View>
         <Text style={styles.title}>{selectedProject.name}</Text>
         <Text style={styles.severity}>Severity: {selectedProject.severity}</Text>
         {/* Defect Severity Breakdown Tables */}
@@ -189,7 +191,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
         <DefectDensityMeter value={0} />
         {/* Insert Defect Density/Severity and Defects by Module here */}
         <View style={[styles.cardWithBorder]}>
-          <DefectDensitySeverity />
+          <DefectSeverityIndex value={0} />
         </View>
         <View style={[styles.cardWithBorder]}>
           <DefectsByModule />
@@ -216,15 +218,15 @@ const styles = StyleSheet.create({
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 1,
+    // marginTop: 1,
     marginBottom: 4,
-    minHeight: 48,
+    minHeight: 20,
     paddingHorizontal: 0,
     backgroundColor: 'transparent',
   },
   iconButton: {
     padding: 6,
-    marginTop: 10,
+    marginTop: 8,
   },
   header: {
     fontSize: 14,
@@ -233,7 +235,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     justifyContent: 'center',
     // Remove marginTop and marginBottom for better alignment in row
-    marginTop: 10,
+    marginTop: 8,
     marginBottom: 0,
     marginRight:20
   },
@@ -334,10 +336,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   selectionBarContainer: {
-    marginBottom: 16,
+    marginBottom: 2,
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 12,
+    marginHorizontal: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -390,7 +393,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#2D6A4F',
     textAlign: 'center',
-    marginTop: 10,
+    marginTop: 8,
     marginBottom: 0,
     letterSpacing: 1,
   },

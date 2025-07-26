@@ -245,20 +245,20 @@ const DefectDensityMeter: React.FC<DefectDensityMeterProps> = ({
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    paddingVertical: 6,
+    paddingVertical: 5,
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#1f2937',
-    marginBottom: 16,
+    marginBottom: 1,
   },
 
   valueText: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#1f2937',
-    marginTop: 16,
+    marginTop: 0,
     textAlign: 'center',
   },
   unitText: {

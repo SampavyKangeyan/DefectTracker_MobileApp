@@ -67,9 +67,14 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
     navigation.replace('Login');
   };
 
+  // Sort projects by severity: High > Medium > Low when "All Projects" is selected
+  const severityOrder: SeverityLevel[] = ['High Risk', 'Medium Risk', 'Low Risk'];
   const filteredProjects =
     filter === 'All'
-      ? PROJECTS
+      ? [...PROJECTS].sort(
+          (a, b) =>
+            severityOrder.indexOf(a.severity) - severityOrder.indexOf(b.severity)
+        )
       : PROJECTS.filter((p) => p.severity === filter);
 
   const renderProject = ({ item }: { item: Project }) => (
@@ -291,7 +296,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
     marginBottom: 4,
-    minHeight: 48,
+    minHeight: 40,
     paddingHorizontal: 0,
     backgroundColor: 'transparent',
   },
@@ -315,7 +320,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginTop: 10,
+    marginTop: 8,
     marginBottom: 30,
   },
   projectCard: {
