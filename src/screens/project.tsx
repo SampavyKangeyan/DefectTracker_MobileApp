@@ -124,7 +124,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
           <TouchableOpacity onPress={handleBack} style={styles.iconButton} accessibilityLabel="Back">
             <Icon name="arrow-back" size={18} color="#222" />
           </TouchableOpacity>
-          <Text style={styles.header}>Project overview</Text>
+          <Text style={styles.header}>Project </Text>
         </View>
         <Text style={styles.appTitle}>DefectTracker Pro</Text>
       </View>
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
     appTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#2D6A4F',
     textAlign: 'center',

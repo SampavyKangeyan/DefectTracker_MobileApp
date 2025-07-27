@@ -47,6 +47,19 @@ const FILTERS = [
   { label: 'Low Risk', value: 'Low Risk' },
 ];
 
+const getSeverityColor = (filterValue: string) => {
+  switch (filterValue) {
+    case 'High Risk':
+      return '#e53935'; // Red
+    case 'Medium Risk':
+      return '#fbc02d'; // Orange
+    case 'Low Risk':
+      return '#43a047'; // Green
+    default:
+      return '#2D6A4F'; // Default color for "All Projects"
+  }
+};
+
 // Icon mapping for severity
 const SEVERITY_ICONS: Record<SeverityLevel, string> = {
   'High Risk': '❕',
@@ -135,23 +148,28 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
         <Text style={styles.sectionTitle}>All Projects</Text>
         <Text style={styles.sectionDesc}>Filter by severity</Text>
         <View style={styles.filterRow}>
-          {FILTERS.map(f => (
-            <TouchableOpacity
-              key={f.value}
-              style={[
-                styles.filterBtn,
-                filter === f.value && styles.filterBtnActive
-              ]}
-              onPress={() => setFilter(f.value)}
-            >
-              <Text style={[
-                styles.filterBtnText,
-                filter === f.value && styles.filterBtnTextActive
-              ]}>
-                {f.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {FILTERS.map(f => {
+            const severityColor = getSeverityColor(f.value);
+
+            return (
+              <TouchableOpacity
+                key={f.value}
+                style={[
+                  styles.filterBtn,
+                  filter === f.value && { backgroundColor: severityColor }
+                ]}
+                onPress={() => setFilter(f.value)}
+              >
+                <Text style={[
+                  styles.filterBtnText,
+                  { color: filter === f.value ? '#fff' : severityColor },
+                  filter === f.value && styles.filterBtnTextActive
+                ]}>
+                  {f.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
         <View style={styles.projectsGrid}>
           {filteredProjects.map((item) => (
@@ -267,11 +285,13 @@ const styles = StyleSheet.create({
   },
   filterRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     marginVertical: 10,
-    backgroundColor: '#e3eafc',
+    backgroundColor: '#ffffffff',
     borderRadius: 20,
     padding: 4,
+    borderWidth:1,
+    borderColor:'#000000ff',
   },
   filterBtn: {
     paddingHorizontal: 10,
@@ -280,11 +300,7 @@ const styles = StyleSheet.create({
     marginRight: 1,
     backgroundColor: 'transparent',
   },
-  filterBtnActive: {
-    backgroundColor: '#2D6A4F',
-  },
   filterBtnText: {
-    color: '#2D6A4F',
     fontWeight: 'bold',
     position: 'relative',
   },
@@ -363,7 +379,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   appTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#2D6A4F',
     textAlign: 'center',
