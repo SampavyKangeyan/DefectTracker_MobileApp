@@ -95,12 +95,12 @@ const styles = StyleSheet.create({
   },
   moduleNameText: {
     fontSize: 12,
-    color: '#333',
+    color: '#000',
     fontWeight: '500',
   },
   valueText: {
-    fontSize: 11,
-    color: '#666',
+    fontSize: 14,
+    color: '#000',
   },
 });
 

@@ -7,6 +7,7 @@ import IntroScreen from './src/screens/Intro';
 import LoginScreen from './src/screens/login';
 import DashboardScreen from './src/screens/dashboard';
 import Project from './src/screens/project';
+import DefectSeverityBreakdown from './src/screens/DefectSeverityBreakdown';
 
 // Define the navigation parameter types
 export type RootStackParamList = {
@@ -18,6 +19,7 @@ export type RootStackParamList = {
     name: string;
     severity: string;
   };
+  DefectSeverityBreakdown: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -34,6 +36,7 @@ function App() {
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
           <Stack.Screen name="ProjectDetails" component={Project} />
+          <Stack.Screen name="DefectSeverityBreakdown" component={DefectSeverityBreakdown} />
         </Stack.Navigator>
       </View>
     </NavigationContainer>

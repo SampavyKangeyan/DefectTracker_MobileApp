@@ -145,6 +145,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
             <Text style={styles.statusDesc}>Stable and on track</Text>
           </View>
         </View>
+
         <Text style={styles.sectionTitle}>All Projects</Text>
         <Text style={styles.sectionDesc}>Filter by severity</Text>
         <View style={styles.filterRow}>
@@ -386,6 +387,30 @@ const styles = StyleSheet.create({
     marginTop: 30,
     marginBottom: 0,
     letterSpacing: 1,
+  },
+  severityBreakdownBtn: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginVertical: 12,
+    marginHorizontal: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  severityBreakdownContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  severityBreakdownText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginLeft: 12,
   },
 });
 
