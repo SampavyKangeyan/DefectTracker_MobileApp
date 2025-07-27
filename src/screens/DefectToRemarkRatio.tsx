@@ -1,37 +1,25 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+
+const STATIC_DEFECT_TO_REMARK_RATIO = 0.92;
 
 const DefectToRemarkRatio: React.FC = () => {
-  const screenWidth = Dimensions.get('window').width;
-  
-  // Mock data
-  const ratio = 2.1;
-  const status = 'Critical';
-  const progressValue = 0.7; // 70% of the way to critical threshold
-  
+  // Calculate fill percent for the bar (max 1.0)
+  const fillPercent = Math.min(STATIC_DEFECT_TO_REMARK_RATIO, 1.0);
+
   return (
-    <View style={styles.container}>
+    <View style={styles.cardWithBorder}>
       <Text style={styles.title}>Defect to Remark Ratio</Text>
-      
-      <View style={styles.ratioContainer}>
-        <Text style={styles.ratioText}>{ratio}:1</Text>
-        <Text style={styles.statusText}>{status}</Text>
-      </View>
-      
-      <View style={styles.progressContainer}>
-        <View style={styles.progressBar}>
-          <View 
-            style={[
-              styles.progressFill, 
-              { width: `${progressValue * 100}%` }
-            ]} 
-          />
+      <View style={styles.ratioCard}>
+        <Text style={styles.ratioValue}>{STATIC_DEFECT_TO_REMARK_RATIO}</Text>
+        <Text style={styles.ratioLabel}>Critical</Text>
+        <View style={styles.ratioBar}>
+          <View style={[styles.ratioBarFill, { width: `${fillPercent * 100}%` }]} />
         </View>
-        
-        <View style={styles.labelsContainer}>
-          <Text style={styles.labelText}>0.0</Text>
-          <Text style={styles.labelText}>0.5</Text>
-          <Text style={styles.labelText}>1.0</Text>
+        <View style={styles.ratioBarLabels}>
+          <Text style={styles.ratioBarLabelNum}>0.0</Text>
+          <Text style={styles.ratioBarLabelNum}>0.5</Text>
+          <Text style={styles.ratioBarLabelNum}>1.0</Text>
         </View>
       </View>
     </View>
@@ -39,61 +27,81 @@ const DefectToRemarkRatio: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
+  // card: {
+  //   backgroundColor: '#fff',
+  //   borderRadius: 16,
+  //   padding: 16,
+  //   margin: 16,
+  //   shadowColor: '#000',
+  //   shadowOffset: { width: 0, height: 2 },
+  //   shadowOpacity: 0.08,
+  //   shadowRadius: 6,
+  //   elevation: 3,
+  //   width: '92%',
+  //   alignSelf: 'center',
+  //   borderWidth: 2,
+  //   borderColor: '#e3eafc',
+  // },
+  cardWithBorder: {
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 20,
-    margin: 16,
+    padding: 16,
+    marginBottom:25,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.06,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  ratioContainer: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  ratioText: {
-    fontSize: 32,
+    fontSize: 17,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
+    color: '#222',
+    marginBottom: 10,
   },
-  statusText: {
-    fontSize: 14,
-    color: '#e53935',
-    fontWeight: '500',
-  },
-  progressContainer: {
+  ratioCard: {
+    alignItems: 'center',
+    width: '100%',
     marginTop: 8,
   },
-  progressBar: {
-    height: 8,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 4,
-    overflow: 'hidden',
+  ratioValue: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#e53935',
+    marginBottom: 2,
+  },
+  ratioLabel: {
+    fontSize: 14,
+    color: '#e53935',
+    fontWeight: 'bold',
     marginBottom: 8,
   },
-  progressFill: {
+  ratioBar: {
+    width: '90%',
+    height: 14,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginBottom: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  ratioBarFill: {
     height: '100%',
     backgroundColor: '#e53935',
-    borderRadius: 4,
+    borderRadius: 8,
   },
-  labelsContainer: {
+  ratioBarLabels: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    width: '90%',
+    marginTop: 2,
   },
-  labelText: {
+  ratioBarLabelNum: {
     fontSize: 12,
-    color: '#666',
+    color: '#6b7280',
   },
 });
 

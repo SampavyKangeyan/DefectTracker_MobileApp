@@ -188,16 +188,16 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
             </View>
           ) : null}
         </View>
-        <DefectDensityMeter value={0} />
-        {/* Insert Defect Density/Severity and Defects by Module here */}
-        <View style={[styles.cardWithBorder]}>
-          <DefectSeverityIndex value={0} />
+        <DefectDensityMeter value={12} />
+        <View>
+          <DefectSeverityIndex value={75.0} />
+        </View>
+        <View>
+          <DefectToRemarkRatio />
         </View>
         <View style={[styles.cardWithBorder]}>
           <DefectsByModule />
         </View>
-        <View style={{ height: 48 }} />  
-        {/* Add more graph sections as needed */}
         <View style={[styles.cardWithBorder]}>
           <DefectsReopenedChart />
         </View>

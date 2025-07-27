@@ -51,98 +51,100 @@ const CustomSpeedometer: React.FC<{
   const mediumEndAngle = startAngle + (10 / maxValue) * totalAngle;
 
   return (
-    <Svg width={size} height={size} style={{ transform: [{ rotate: '-90deg' }] }}>
-      {/* Low range (green) */}
-      <Path
-        d={createArcPath(startAngle, lowEndAngle, radius)}
-        stroke="#10b981"
-        strokeWidth="8"
-        fill="none"
-        strokeLinecap="round"
-      />
-      {/* Medium range (yellow) */}
-      <Path
-        d={createArcPath(lowEndAngle, mediumEndAngle, radius)}
-        stroke="#f59e0b"
-        strokeWidth="8"
-        fill="none"
-        strokeLinecap="round"
-      />
-      {/* High range (red) */}
-      <Path
-        d={createArcPath(mediumEndAngle, endAngle, radius)}
-        stroke="#ef4444"
-        strokeWidth="8"
-        fill="none"
-        strokeLinecap="round"
-      />
+    <View style={{ alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+      <Svg width={size} height={size} style={{ transform: [{ rotate: '-90deg' }] }}>
+        {/* Low range (green) */}
+        <Path
+          d={createArcPath(startAngle, lowEndAngle, radius)}
+          stroke="#10b981"
+          strokeWidth="8"
+          fill="none"
+          strokeLinecap="round"
+        />
+        {/* Medium range (yellow) */}
+        <Path
+          d={createArcPath(lowEndAngle, mediumEndAngle, radius)}
+          stroke="#f59e0b"
+          strokeWidth="8"
+          fill="none"
+          strokeLinecap="round"
+        />
+        {/* High range (red) */}
+        <Path
+          d={createArcPath(mediumEndAngle, endAngle, radius)}
+          stroke="#ef4444"
+          strokeWidth="8"
+          fill="none"
+          strokeLinecap="round"
+        />
 
-      {/* Tick marks */}
-      {Array.from({ length: 16 }, (_, i) => {
-        const tickAngle = startAngle + (i / 15) * totalAngle;
-        const tickAngleRad = (tickAngle * Math.PI) / 180;
-        const tickStartRadius = radius - 15;
-        const tickEndRadius = radius - 5;
-        const x1 = centerX + tickStartRadius * Math.cos(tickAngleRad);
-        const y1 = centerY + tickStartRadius * Math.sin(tickAngleRad);
-        const x2 = centerX + tickEndRadius * Math.cos(tickAngleRad);
-        const y2 = centerY + tickEndRadius * Math.sin(tickAngleRad);
+        {/* Tick marks */}
+        {Array.from({ length: 16 }, (_, i) => {
+          const tickAngle = startAngle + (i / 15) * totalAngle;
+          const tickAngleRad = (tickAngle * Math.PI) / 180;
+          const tickStartRadius = radius - 15;
+          const tickEndRadius = radius - 5;
+          const x1 = centerX + tickStartRadius * Math.cos(tickAngleRad);
+          const y1 = centerY + tickStartRadius * Math.sin(tickAngleRad);
+          const x2 = centerX + tickEndRadius * Math.cos(tickAngleRad);
+          const y2 = centerY + tickEndRadius * Math.sin(tickAngleRad);
 
-        return (
-          <Line
-            key={i}
-            x1={x1}
-            y1={y1}
-            x2={x2}
-            y2={y2}
-            stroke="#374151"
-            strokeWidth="2"
-          />
-        );
-      })}
+          return (
+            <Line
+              key={i}
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
+              stroke="#374151"
+              strokeWidth="2"
+            />
+          );
+        })}
 
-      {/* Tick labels */}
-      {[0, 5, 10, 15].map((tickValue) => {
-        const tickAngle = startAngle + (tickValue / maxValue) * totalAngle;
-        const tickAngleRad = (tickAngle * Math.PI) / 180;
-        const labelRadius = radius - 25;
-        const x = centerX + labelRadius * Math.cos(tickAngleRad);
-        const y = centerY + labelRadius * Math.sin(tickAngleRad);
+        {/* Tick labels */}
+        {[0, 5, 10, 15].map((tickValue) => {
+          const tickAngle = startAngle + (tickValue / maxValue) * totalAngle;
+          const tickAngleRad = (tickAngle * Math.PI) / 180;
+          const labelRadius = radius - 25;
+          const x = centerX + labelRadius * Math.cos(tickAngleRad);
+          const y = centerY + labelRadius * Math.sin(tickAngleRad);
 
-        return (
-          <SvgText
-            key={tickValue}
-            x={x}
-            y={y}
-            fontSize="12"
-            fill="#374151"
-            textAnchor="middle"
-            alignmentBaseline="middle"
-          >
-            {tickValue}
-          </SvgText>
-        );
-      })}
+          return (
+            <SvgText
+              key={tickValue}
+              x={x}
+              y={y}
+              fontSize="12"
+              fill="#374151"
+              textAnchor="middle"
+              alignmentBaseline="middle"
+            >
+              {tickValue}
+            </SvgText>
+          );
+        })}
 
-      {/* Needle */}
-      <Line
-        x1={centerX}
-        y1={centerY}
-        x2={needleX}
-        y2={needleY}
-        stroke={currentColor}
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
+        {/* Needle */}
+        <Line
+          x1={centerX}
+          y1={centerY}
+          x2={needleX}
+          y2={needleY}
+          stroke={currentColor}
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
 
-      {/* Center circle */}
-      <Circle
-        cx={centerX}
-        cy={centerY}
-        r="6"
-        fill={currentColor}
-      />
-    </Svg>
+        {/* Center circle */}
+        <Circle
+          cx={centerX}
+          cy={centerY}
+          r="6"
+          fill={currentColor}
+        />
+      </Svg>
+    </View>
   );
 };
 
@@ -166,13 +168,13 @@ const DefectDensityMeter: React.FC<DefectDensityMeterProps> = ({
 
   // Configure speedometer with proper segment distribution
   // We'll use 15 segments to match our 0-15 scale, with proper color distribution
-  const maxValue = 15;
+  const maxValue = 20;
 
   const currentColor = getColorForValue(value);
   const currentLevel = getCurrentLevel(value);
 
   return (
-    <View style={styles.container}>
+  <View style={styles.cardWithBorder}>
       <Text style={styles.title}>{title}</Text>
       <CustomSpeedometer
         value={Math.min(value, maxValue)}
@@ -180,10 +182,11 @@ const DefectDensityMeter: React.FC<DefectDensityMeterProps> = ({
         maxValue={maxValue}
         currentColor={currentColor}
       />
-      <Text style={[styles.valueText, { color: currentColor }]}>
+      {/* Reduce marginTop in valueText for minimal gap */}
+      <Text style={[styles.valueText, { color: currentColor, marginTop: -75 }]}>
         {value.toFixed(2)}
       </Text>
-      <Text style={styles.unitText}>defects/1000 LOC</Text>
+      {/* <Text style={styles.unitText}>defects/1000 LOC</Text> */}
       <Text style={[styles.levelText, { color: currentColor }]}>
         {currentLevel} Risk
       </Text>
@@ -238,14 +241,23 @@ const DefectDensityMeter: React.FC<DefectDensityMeterProps> = ({
           </Text>
         </View>
       </View>
-    </View>
+    </View>  
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    paddingVertical: 5,
+  cardWithBorder: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom:25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   title: {
     fontSize: 18,
@@ -253,12 +265,11 @@ const styles = StyleSheet.create({
     color: '#1f2937',
     marginBottom: 1,
   },
-
   valueText: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#1f2937',
-    marginTop: 0,
+    marginTop: 0, // will be overridden inline
     textAlign: 'center',
   },
   unitText: {

@@ -15,7 +15,7 @@ const DefectSeverityIndex: React.FC<DefectSeverityIndexProps> = ({ value }) => {
   const color = getColor(value);
 
   return (
-    <View style={styles.card}>
+    <View style={styles.cardWithBorder}>
       <Text style={styles.title}>Defect Severity Index</Text>
       <View style={styles.row}>
         <View style={styles.pillContainer}>
@@ -39,11 +39,24 @@ const DefectSeverityIndex: React.FC<DefectSeverityIndexProps> = ({ value }) => {
 };
 
 const styles = StyleSheet.create({
-  card: {
+  // card: {
+  //   backgroundColor: '#fff',
+  //   borderRadius: 16,
+  //   padding: 18,
+  //   marginBottom: 25,
+  //   shadowColor: '#000',
+  //   shadowOffset: { width: 0, height: 2 },
+  //   shadowOpacity: 0.06,
+  //   shadowRadius: 4,
+  //   elevation: 2,
+  //   borderWidth: 1,
+  //   borderColor: '#e0e0e0',
+  // },
+  cardWithBorder: {
     backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 25,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom:25,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
