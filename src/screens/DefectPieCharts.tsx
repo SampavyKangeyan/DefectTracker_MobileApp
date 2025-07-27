@@ -9,18 +9,39 @@ export const DefectsReopenedChart: React.FC = () => {
   const reopenedData = [
     {
       name: '2 times',
-      population: 5,
+      population: 3,
+      color: '#00bfae',
+      legendFontColor: '#333',
+      legendFontSize: 14,
+    },
+    {
+      name: '3 times',
+      population: 1,
       color: '#4285F4',
       legendFontColor: '#333',
       legendFontSize: 14,
     },
     {
       name: '4 times',
-      population: 1,
+      population: 6,
       color: '#fbbc05',
       legendFontColor: '#333',
       legendFontSize: 14,
     },
+    {
+      name: '5 times',
+      population: 2,
+      color: '#ff995aff',
+      legendFontColor: '#333',
+      legendFontSize: 14,
+    },
+    {
+      name: '5+ times',
+      population: 6,
+      color: '#ff0000ff',
+      legendFontColor: '#333',
+      legendFontSize: 14,
+    }
   ];
 
   const chartConfig = {
@@ -78,7 +99,7 @@ export const DefectDistributionChart: React.FC = () => {
     {
       name: 'Validation',
       population: 103,
-      color: '#ea4335',
+      color: '#ff0000ff',
       legendFontColor: '#333',
       legendFontSize: 12,
     },
@@ -131,9 +152,9 @@ const styles = StyleSheet.create({
   },
   pieWithBorder: {
     // Add white border between pie slices
-    borderWidth: 4,
+    borderWidth: 0,
     borderColor: '#fff',
-    borderRadius: 110,
+    borderRadius: 0,
     overflow: 'hidden',
   },
   title: {

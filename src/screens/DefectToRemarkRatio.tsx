@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   //   borderWidth: 2,
   //   borderColor: '#e3eafc',
   // },
-  cardWithBorder: {
+    cardWithBorder: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,

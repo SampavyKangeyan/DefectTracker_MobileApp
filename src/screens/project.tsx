@@ -11,6 +11,7 @@ import DefectToRemarkRatio from './DefectToRemarkRatio';
 import TimeToFindDefects from './TimeToFindDefects';
 import DefectDensityMeter from './DefectDensityMeter';
 import DefectSeverityIndex from './DefectSeverityIndex';
+import TimeDefectCharts from './TimeDefectCharts';
 
 
 // Import the navigation types from App.tsx
@@ -196,13 +197,15 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
           <DefectToRemarkRatio />
         </View>
         <View style={[styles.cardWithBorder]}>
-          <DefectsByModule />
-        </View>
-        <View style={[styles.cardWithBorder]}>
           <DefectsReopenedChart />
         </View>
         <View style={[styles.cardWithBorder]}>
           <DefectDistributionChart />
+        </View>
+        {/* Insert Time to Find Defects and Time to Fix Defects */}
+        <TimeDefectCharts />
+        <View style={[styles.cardWithBorder]}>
+          <DefectsByModule />
         </View>
       </ScrollView>
     </SafeAreaView>
