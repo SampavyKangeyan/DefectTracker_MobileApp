@@ -9,30 +9,33 @@ interface ModuleDefect {
 }
 
 const MODULE_DEFECTS: ModuleDefect[] = [
-  { name: 'Configurations', value: 78, color: '#4285F4' },
-  { name: 'Project Management', value: 50, color: '#34a853' },
-  { name: 'Bench', value: 57, color: '#fbbc05' },
-  { name: 'Defects', value: 63, color: '#ea4335' },
-  { name: 'Test Cases', value: 54, color: '#a142f4' },
-  { name: 'Employee', value: 67, color: '#00bfae' },
-  { name: 'Releases', value: 35, color: '#ff7043' },
-  { name: 'Project 22', value: 22, color: '#c0ca33' },
+  { name: 'Configurations', value: 77, color: '#4285F4' },
+  { name: 'Project Management', value: 55, color: '#34a853' },
+  { name: 'Bench', value: 58, color: '#fbbc05' },
+  { name: 'Defects', value: 68, color: '#ea4335' },
+  { name: 'Test Cases', value: 58, color: '#00bfae' },
+  { name: 'Employee', value: 67, color: '#a142f4' },
+  { name: 'Releases', value: 34, color: '#ff7043' },
+  { name: 'Project', value: 22, color: '#c0ca33' },
   { name: 'Main Template', value: 4, color: '#8d6e63' },
-  { name: 'Dashboard', value: 17, color: '#2D6A4F' },
+  { name: 'Dashboard', value: 19, color: '#2D6A4F' },
 ];
 
 const total = MODULE_DEFECTS.reduce((sum, m) => sum + m.value, 0);
 
 const DefectsByModule: React.FC = () => {
-  const widthAndHeight = 140;
+  const widthAndHeight = 220;
 //   const series = MODULE_DEFECTS.map(m => m.count);
   const sliceColors = MODULE_DEFECTS.map(m => m.color);
 
+  // Sort modules by value in descending order for the legend
+  const sortedModules = [...MODULE_DEFECTS].sort((a, b) => b.value - a.value);
+
   return (
-    // <View style={styles.card}>
     <View>
       <Text style={styles.title}>Defects by Module</Text>
-      <View style={styles.pieRow}>
+      {/* Pie Chart centered */}
+      <View style={styles.chartContainer}>
         <PieChart
           widthAndHeight={widthAndHeight}
           series={MODULE_DEFECTS}
@@ -40,63 +43,64 @@ const DefectsByModule: React.FC = () => {
         //   coverRadius={0.6}
         //   coverFill={'#fff'}
         />
-        <View style={styles.legendContainer}>
-          {MODULE_DEFECTS.map((m, idx) => (
-            <View key={m.name} style={styles.legendRow}>
+      </View>
+      {/* Legend below the chart */}
+      <View style={styles.legendGrid}>
+        {sortedModules.map((m) => (
+          <View key={m.name} style={styles.legendItem}>
+            <View style={styles.legendRow}>
               <View style={[styles.dot, { backgroundColor: m.color }]} />
-              <Text style={styles.legendText}>
-                {m.name} {m.value} ({((m.value / total) * 100).toFixed(2)}%)
+              <Text style={styles.moduleNameText}>{m.name} : </Text>
+              <Text style={styles.valueText}>
+                {m.value} - ({((m.value / total) * 100).toFixed(1)}%)
               </Text>
             </View>
-          ))}
-        </View>
+          </View>
+        ))}
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-//   card: {
-//     backgroundColor: '#fff',
-//     borderRadius: 16,
-//     padding: 16,
-//     margin: 16,
-//     shadowColor: '#000',
-//     shadowOffset: { width: 0, height: 2 },
-//     shadowOpacity: 0.08,
-//     shadowRadius: 6,
-//     elevation: 3,
-//     width: '92%',
-//     alignSelf: 'center',
-//   },
   title: {
     fontSize: 17,
     fontWeight: 'bold',
     color: '#222',
     marginBottom: 10,
   },
-  pieRow: {
-    flexDirection: 'row',
+  chartContainer: {
     alignItems: 'center',
+    marginBottom: 20,
   },
-  legendContainer: {
-    marginLeft: 18,
-    flex: 1,
+  legendGrid: {
+    flexDirection: 'column',
+    alignSelf: 'center',
+  },
+  legendItem: {
+    width: '100%',
+    marginBottom: 6,
   },
   legendRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    justifyContent: 'space-between',
+    marginBottom: 2,
   },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 7,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
   },
-  legendText: {
-    fontSize: 13,
+  moduleNameText: {
+    fontSize: 12,
     color: '#333',
+    fontWeight: '500',
+  },
+  valueText: {
+    fontSize: 11,
+    color: '#666',
   },
 });
 

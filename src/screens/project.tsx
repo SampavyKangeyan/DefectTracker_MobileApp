@@ -8,7 +8,6 @@ import { RouteProp } from '@react-navigation/native';
 import { DefectsReopenedChart, DefectDistributionChart } from './DefectPieCharts';
 import DefectsByModule from './DefectsByModule';
 import DefectToRemarkRatio from './DefectToRemarkRatio';  
-import TimeToFindDefects from './TimeToFindDefects';
 import DefectDensityMeter from './DefectDensityMeter';
 import DefectSeverityIndex from './DefectSeverityIndex';
 import TimeDefectCharts from './TimeDefectCharts';
