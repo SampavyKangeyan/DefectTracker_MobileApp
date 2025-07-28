@@ -93,8 +93,8 @@ const PROJECTS = [
   { id: '8', name: 'Project 5', severity: 'Medium Risk' },
   { id: '9', name: 'Project 6', severity: 'Medium Risk' },
   { id: '10', name: 'Project 7', severity: 'Medium Risk' },
-  // { id: '11', name: 'Project 8', severity: 'Low Risk' },
-  // { id: '12', name: 'Project 9', severity: 'Medium Risk' },
+   { id: '11', name: 'Project 9', severity: 'Medium Risk' },
+  // { id: '12', name: 'Project 8', severity: 'Low Risk' }, 
   // { id: '13', name: 'Project 10', severity: 'Low Risk' },
   // { id: '14', name: 'Project 11', severity: 'Medium Risk' },
   // { id: '15', name: 'Project 12', severity: 'Low Risk' },
@@ -123,6 +123,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
   });
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedSeverity, setSelectedSeverity] = useState<DefectDataType | null>(null);
+  const [notificationModalVisible, setNotificationModalVisible] = useState(false);
 
   const handleBack = () => {
     navigation.goBack();
@@ -189,13 +190,28 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#f7fafd' }}>
       <View style={styles.topBar}>
-        <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+        <View style={styles.leftSection}>
           <TouchableOpacity onPress={handleBack} style={styles.iconButton} accessibilityLabel="Back">
             <Icon name="arrow-back" size={18} color="#222" />
           </TouchableOpacity>
-          <Text style={styles.header}>Project </Text>
         </View>
-        <Text style={styles.appTitle}>DefectTracker Pro</Text>
+        <View style={styles.centerSection}>
+          <Text style={styles.appTitle}>DefectTracker Pro</Text>
+          <Text style={styles.header}>Project overview</Text>
+        </View>
+        <View style={styles.rightSection}>
+          <TouchableOpacity
+            style={styles.notificationButton}
+            onPress={() => setNotificationModalVisible(true)}
+          >
+            <Icon name="notifications" size={20} color="#000000ff" />
+            <View style={styles.notificationBadge}>
+              <Text style={styles.badgeText}>
+                {PROJECTS.filter(p => p.severity === 'High Risk').length}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
       {/* Fix the selection bar at the top, outside the ScrollView */}
       <View style={styles.selectionBarContainer}>
@@ -329,6 +345,43 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
           </View>
         </Modal>
       )}
+
+      {/* Notification Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={notificationModalVisible}
+        onRequestClose={() => setNotificationModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.notificationModalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Critical Severity Notifications</Text>
+              <TouchableOpacity
+                onPress={() => setNotificationModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Icon name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.notificationList}>
+              {PROJECTS.filter(p => p.severity === 'High Risk').map((project) => (
+                <View key={project.id} style={styles.notificationItem}>
+                  <Icon name="warning" size={20} color="#000000ff" />
+                  <View style={styles.notificationContent}>
+                    <Text style={styles.notificationTitle}>{project.name}</Text>
+                    <Text style={styles.notificationSubtitle}>High Risk - Requires immediate attention</Text>
+                  </View>
+                </View>
+              ))}
+              {PROJECTS.filter(p => p.severity === 'High Risk').length === 0 && (
+                <Text style={styles.noNotifications}>No critical notifications</Text>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -342,29 +395,42 @@ const styles = StyleSheet.create({
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    // marginTop: 1,
+    justifyContent: 'space-between',
+    marginTop: 8,
     marginBottom: 4,
     minHeight: 20,
     paddingHorizontal: 0,
+    paddingVertical:5,
     backgroundColor: 'transparent',
+  },
+
+  leftSection: {
+    flex: 1,
+    alignItems: 'flex-start',
+  },
+  centerSection: {
+    flex: 2,
+    alignItems: 'center',
+  },
+  rightSection: {
+    flex: 1,
+    alignItems: 'flex-end',
+    paddingTop: 8,
   },
   iconButton: {
     padding: 6,
     marginTop: 8,
   },
   header: {
-    fontSize: 14,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#222',
-    alignSelf: 'center',
-    justifyContent: 'center',
-    // Remove marginTop and marginBottom for better alignment in row
-    marginTop: 8,
+    textAlign: 'center',
+    marginTop: 2,
     marginBottom: 0,
-    marginRight:20
   },
   title: {
-    fontSize: 28,
+    fontSize: 12,
     fontWeight: 'bold',
     marginBottom: 8,
     color: '#222',
@@ -513,12 +579,12 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
     appTitle: {
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#2D6A4F',
     textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 0,
+    marginTop: 0,
+    marginBottom: 2,
     letterSpacing: 1,
   },
   cardsContainer: {
@@ -553,6 +619,64 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     padding: 4,
+  },
+  notificationButton: {
+    position: 'relative',
+    padding: 8,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    backgroundColor: '#e53935',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  notificationModalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    margin: 20,
+    width: '90%',
+    maxHeight: '70%',
+  },
+  notificationList: {
+    maxHeight: 300,
+  },
+  notificationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  notificationContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  notificationTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4,
+  },
+  notificationSubtitle: {
+    fontSize: 14,
+    color: '#666',
+  },
+  noNotifications: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#666',
+    padding: 20,
   },
 });
 
