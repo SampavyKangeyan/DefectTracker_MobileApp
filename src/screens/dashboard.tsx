@@ -81,6 +81,11 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
     navigation.replace('Login');
   };
 
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('credentials');
+    navigation.replace('Login');
+  };
+
   // Sort projects by severity: High > Medium > Low when "All Projects" is selected
   const severityOrder: SeverityLevel[] = ['High Risk', 'Medium Risk', 'Low Risk'];
   const filteredProjects =
@@ -127,6 +132,12 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
                 {PROJECTS.filter(p => p.severity === 'High Risk').length}
               </Text>
             </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={handleLogout}
+          >
+            <Icon name="logout" size={20} color="#666" />
           </TouchableOpacity>
         </View>
       </View>
@@ -389,7 +400,9 @@ const styles = StyleSheet.create({
   },
   rightSection: {
     flex: 1,
+    flexDirection: 'row',
     alignItems: 'flex-end',
+    justifyContent: 'flex-end',
     paddingTop: 30,
   },
   iconButton: {
@@ -489,6 +502,10 @@ const styles = StyleSheet.create({
   },
   notificationButton: {
     position: 'relative',
+    padding: 8,
+    marginRight: 8,
+  },
+  logoutButton: {
     padding: 8,
   },
   notificationBadge: {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Modal } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { ScrollView as RNScrollView } from 'react-native';
@@ -129,6 +130,18 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
     navigation.goBack();
   };
 
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('credentials');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  };
+
   // Responsive logic for statusRow
   const screenWidth = Dimensions.get('window').width;
   const isSmallScreen = screenWidth < 400;
@@ -210,6 +223,12 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
                 {PROJECTS.filter(p => p.severity === 'High Risk').length}
               </Text>
             </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={handleLogout}
+          >
+            <Icon name="logout" size={20} color="#666" />
           </TouchableOpacity>
         </View>
       </View>
@@ -368,7 +387,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
             <View style={styles.notificationList}>
               {PROJECTS.filter(p => p.severity === 'High Risk').map((project) => (
                 <View key={project.id} style={styles.notificationItem}>
-                  <Icon name="warning" size={20} color="#000000ff" />
+                  <Icon name="warning" size={20} color="#ff0000ff" />
                   <View style={styles.notificationContent}>
                     <Text style={styles.notificationTitle}>{project.name}</Text>
                     <Text style={styles.notificationSubtitle}>High Risk - Requires immediate attention</Text>
@@ -414,7 +433,9 @@ const styles = StyleSheet.create({
   },
   rightSection: {
     flex: 1,
+    flexDirection: 'row',
     alignItems: 'flex-end',
+    justifyContent: 'flex-end',
     paddingTop: 8,
   },
   iconButton: {
@@ -622,6 +643,10 @@ const styles = StyleSheet.create({
   },
   notificationButton: {
     position: 'relative',
+    padding: 8,
+    marginRight: 8,
+  },
+  logoutButton: {
     padding: 8,
   },
   notificationBadge: {
