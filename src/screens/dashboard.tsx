@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Dimensions, Platform, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Dimensions, Platform, Modal, SafeAreaView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -110,16 +110,16 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f7fafd' }}>
-      <View style={styles.topBar}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f7fafd' }}>
+      <View style={styles.topBar}> 
         <View style={styles.leftSection}>
-          <TouchableOpacity onPress={handleBack} style={styles.iconButton} accessibilityLabel="Back">
-            <Icon name="arrow-back" size={18} color="#222" />
+          <TouchableOpacity onPress={handleBack}  accessibilityLabel="Back">
+            <Icon name="arrow-back" size={22} color="#222" />
           </TouchableOpacity>
         </View>
-        <View style={styles.centerSection}>
-          <Text style={styles.appTitle}>DefectTracker Pro</Text>
+        <View style={styles.middleSection}>
           <Text style={styles.header}>Dashboard</Text>
+          <Text style={styles.appTitle}>DefectTracker Pro</Text>   
         </View>
         <View style={styles.rightSection}>
           <TouchableOpacity
@@ -140,6 +140,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
             <Icon name="logout" size={20} color="#666" />
           </TouchableOpacity>
         </View>
+
       </View>
       <ScrollView style={styles.container} contentContainerStyle={{ paddingTop: 0 }}>
         <Text style={styles.subheader}>
@@ -213,9 +214,9 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
                 styles.projectCard,
                 {
                   backgroundColor: SEVERITY_COLORS[item.severity] || '#ccc',
-                  width: 120,
-                  height: 120,
-                  borderRadius: 60, // circle
+                  width: 150,
+                  height: 150,
+                  borderRadius: 75, // circle
                   margin: 10,
                 },
               ]}
@@ -244,7 +245,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
         <View style={styles.modalOverlay}>
           <View style={styles.notificationModalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Critical Severity Notifications</Text>
+              <Text style={styles.modalTitle}>High Severity Notifications</Text>
               <TouchableOpacity
                 onPress={() => setNotificationModalVisible(false)}
                 style={styles.closeButton}
@@ -270,7 +271,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -281,16 +282,15 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   header: {
-    fontSize: 24,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#222',
-    textAlign: 'center',
-    marginTop: 2,
-    marginBottom: 0,
+   
+  
   },
   subheader: {
     fontSize: 15,
-    color: '#666',
+    color: '#000000ff',
     textAlign: 'center',
     marginBottom: 14,
   },
@@ -370,45 +370,37 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   topBar: {
+    display:'flex',
     flexDirection: 'row',
+    marginTop:30 ,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 18,
-    marginBottom: 4,
+    marginHorizontal: 10,
     minHeight: 40,
-    paddingHorizontal: 0,
-    backgroundColor: 'transparent',
   },
-  //   topBar: {
-  //   flexDirection: 'row',
-  //   alignItems: 'center',
-  //   justifyContent: 'space-between',
-  //   marginBottom: 4,
-  //   minHeight: 20,
-  //   paddingHorizontal: 0,
-  //   backgroundColor: 'transparent',
-  // },
-
   leftSection: {
     flex: 1,
     alignItems: 'flex-start',
   },
-  centerSection: {
-    flex: 2,
+  middleSection: {
+    flex:7 ,
+    flexDirection:'row',
     alignItems: 'center',
-    paddingTop: 30,
+    justifyContent: 'flex-start',
+    gap:20
   },
   rightSection: {
     flex: 1,
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'flex-end',
-    paddingTop: 30,
+  
   },
-  iconButton: {
-    padding: 6,
-    marginTop: 30,
+   appTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2D6A4F',
   },
+
   backButton: {
     paddingHorizontal: 16,
     paddingVertical: 6,
@@ -467,15 +459,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 13,
   },
-  appTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#2D6A4F',
-    textAlign: 'center',
-    marginTop: 0,
-    marginBottom: 2,
-    letterSpacing: 1,
-  },
+ 
   severityBreakdownBtn: {
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -498,12 +482,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
-    marginLeft: 12,
+    // marginLeft: 12,
   },
   notificationButton: {
     position: 'relative',
     padding: 8,
-    marginRight: 8,
+ 
   },
   logoutButton: {
     padding: 8,

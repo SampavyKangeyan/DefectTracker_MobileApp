@@ -73,7 +73,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
             style={styles.iconButton}
             accessibilityLabel="Back"
           >
-            <Icon name="arrow-left" size={28} color="#ffffff" />
+            <Icon name="arrow-left" size={22} color="#ffffff" />
           </TouchableOpacity>
           <View style={styles.card}>
             <View style={styles.iconCircle}>

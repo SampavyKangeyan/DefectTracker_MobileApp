@@ -218,12 +218,14 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
       <View style={styles.topBar}>
         <View style={styles.leftSection}>
           <TouchableOpacity onPress={handleBack} style={styles.iconButton} accessibilityLabel="Back">
-            <Icon name="arrow-back" size={18} color="#222" />
+            <Icon name="arrow-back" size={22} color="#222" />
           </TouchableOpacity>
+        </View>
+        <View style={styles.leftSectionS}>
+          <Text style={styles.header}>Project overview</Text>
         </View>
         <View style={styles.centerSection}>
           <Text style={styles.appTitle}>DefectTracker Pro</Text>
-          <Text style={styles.header}>Project overview</Text>
         </View>
         <View style={styles.rightSection}>
           <TouchableOpacity
@@ -249,7 +251,12 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
       <View style={styles.selectionBarContainer}>
         <Text style={styles.selectionLabel}>Project Selection</Text>
         <RNScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.selectionScroll}>
-          {PROJECTS.map((proj) => (
+          {[...PROJECTS].sort((a, b) => {
+            // Put selected project first
+            if (a.name === selectedProject.name) return -1;
+            if (b.name === selectedProject.name) return 1;
+            return 0;
+          }).map((proj) => (
             <TouchableOpacity
               key={proj.id + proj.name}
               style={[styles.selectionBtn, selectedProject.name === proj.name && styles.selectionBtnActive]}
@@ -438,14 +445,19 @@ const styles = StyleSheet.create({
     paddingVertical:5,
     backgroundColor: 'transparent',
   },
-
   leftSection: {
     flex: 1,
     alignItems: 'flex-start',
   },
+    leftSectionS: {
+    flex: 1,
+    alignItems: 'flex-start',
+    paddingTop: 20,
+  },
   centerSection: {
     flex: 2,
-    alignItems: 'center',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
   },
   rightSection: {
     flex: 1,
@@ -459,7 +471,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   header: {
-    fontSize: 24,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#222',
     textAlign: 'center',
@@ -622,10 +634,10 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
     appTitle: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#2D6A4F',
-    textAlign: 'center',
+    textAlign: 'right',
     marginTop: 0,
     marginBottom: 2,
     letterSpacing: 1,
