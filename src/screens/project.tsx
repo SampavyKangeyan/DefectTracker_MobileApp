@@ -217,7 +217,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
     <SafeAreaView style={{ flex: 1, backgroundColor: '#f7fafd' }}>
       <View style={styles.topBar}>
         <View style={styles.leftSection}>
-          <TouchableOpacity onPress={handleBack} style={styles.iconButton} accessibilityLabel="Back">
+          <TouchableOpacity onPress={handleBack}>
             <Icon name="arrow-back" size={22} color="#222" />
           </TouchableOpacity>
         </View>
@@ -241,7 +241,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
             style={styles.logoutButton}
             onPress={handleLogout}
           >
-            <Icon name="logout" size={20} color="#666" />
+            <Icon name="logout" size={20} color="#e53935" />
           </TouchableOpacity>
         </View>
       </View>
@@ -275,12 +275,15 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
       </View>
       <ScrollView style={styles.container} contentContainerStyle={{ paddingTop: 0 }}>
         {/* Project Selection Bar */}
+        <View style={styles.barContainer}>
         <Text style={styles.title}>{selectedProject.name}</Text>
         <Text style={styles.severityLabel}>Severity:</Text>
         <Text style={[styles.severity, { color: getSeverityColor(selectedProject.severity) }]}>
           {selectedProject.severity}
         </Text>
+        </View>
         {/* Defect Severity Breakdown Tables */}
+        <View style={styles.cardWithBorder}>
         <Text style={styles.sectionTitle}>Defect Severity Breakdown</Text>
         <View style={styles.cardsContainer}>
           {allDefectData.map(data => (
@@ -317,6 +320,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
               </TouchableOpacity>
             </View>
           ))}
+        </View>
         </View>
         <DefectDensityMeter value={12} />
         <View>
@@ -493,6 +497,22 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: '#222',
   },
+  barContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },  
   severityLabel: {
     fontSize: 16,
     color: '#666',
@@ -632,7 +652,8 @@ const styles = StyleSheet.create({
   cardWithBorder: {
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 16,
+    // padding: 16,
+    paddingHorizontal: 16,
     marginBottom:25,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -641,19 +662,11 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: '#e0e0e0',
-  },
-    appTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#2D6A4F',
-    textAlign: 'right',
-    marginTop: 0,
-    marginBottom: 2,
-    letterSpacing: 1,
+    paddingBottom: 5,
   },
   cardsContainer: {
     gap: 16,
-    marginBottom: 20,
+    marginBottom: 10,
   },
   modalOverlay: {
     flex: 1,
@@ -694,12 +707,12 @@ const styles = StyleSheet.create({
   },
   notificationBadge: {
     position: 'absolute',
-    top: 2,
+    top: 3,
     right: 2,
     backgroundColor: '#e53935',
-    borderRadius: 10,
-    minWidth: 18,
-    height: 18,
+    borderRadius: 12,
+    minWidth: 12,
+    height: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },

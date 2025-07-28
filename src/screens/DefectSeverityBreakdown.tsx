@@ -192,8 +192,10 @@ const DefectSeverityBreakdown: React.FC<DefectSeverityBreakdownProps> = ({ navig
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.cardWithBorder}>
       <View style={styles.cardsContainer}>
         {allDefectData.map(data => renderDefectCard(data))}
+      </View>
       </View>
       {renderPieChart()}
     </SafeAreaView>
@@ -204,6 +206,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f7fafd',
+  },
+    cardWithBorder: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom:25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   cardsContainer: {
     padding: 16,

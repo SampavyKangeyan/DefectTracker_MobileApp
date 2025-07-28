@@ -137,7 +137,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
             style={styles.logoutButton}
             onPress={handleLogout}
           >
-            <Icon name="logout" size={20} color="#666" />
+            <Icon name="logout" size={20} color="#e53935" />
           </TouchableOpacity>
         </View>
 
@@ -494,12 +494,12 @@ const styles = StyleSheet.create({
   },
   notificationBadge: {
     position: 'absolute',
-    top: 2,
+    top: 3,
     right: 2,
     backgroundColor: '#e53935',
-    borderRadius: 10,
-    minWidth: 18,
-    height: 18,
+    borderRadius: 12,
+    minWidth: 12,
+    height: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
