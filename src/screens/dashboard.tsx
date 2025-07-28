@@ -277,7 +277,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f7fafd',
+    backgroundColor: '#f5fffbff',
     padding: 10,
   },
   header: {

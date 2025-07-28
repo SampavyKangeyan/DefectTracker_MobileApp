@@ -142,6 +142,19 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
     }
   };
 
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'High Risk':
+        return '#e53935'; // Red
+      case 'Medium Risk':
+        return '#fbc02d'; // Yellow/Orange
+      case 'Low Risk':
+        return '#43a047'; // Green
+      default:
+        return '#666'; // Default gray
+    }
+  };
+
   // Responsive logic for statusRow
   const screenWidth = Dimensions.get('window').width;
   const isSmallScreen = screenWidth < 400;
@@ -258,7 +271,10 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
       <ScrollView style={styles.container} contentContainerStyle={{ paddingTop: 0 }}>
         {/* Project Selection Bar */}
         <Text style={styles.title}>{selectedProject.name}</Text>
-        <Text style={styles.severity}>Severity: {selectedProject.severity}</Text>
+        <Text style={styles.severityLabel}>Severity:</Text>
+        <Text style={[styles.severity, { color: getSeverityColor(selectedProject.severity) }]}>
+          {selectedProject.severity}
+        </Text>
         {/* Defect Severity Breakdown Tables */}
         <Text style={styles.sectionTitle}>Defect Severity Breakdown</Text>
         <View style={styles.cardsContainer}>
@@ -408,7 +424,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f7fafd',
+    backgroundColor: '#f5fffbff',
     padding: 10,
   },
   topBar: {
@@ -451,15 +467,21 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   title: {
-    fontSize: 12,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 8,
     color: '#222',
   },
-  severity: {
+  severityLabel: {
     fontSize: 16,
     color: '#666',
+    marginBottom: 2,
+    fontWeight: '400',
+  },
+  severity: {
+    fontSize: 16,
     marginBottom: 5,
+    fontWeight: '500',
   },
   graphSection: {
     marginBottom: 28,
@@ -472,7 +494,7 @@ const styles = StyleSheet.create({
   },
   graphPlaceholder: {
     height: 140,
-    backgroundColor: '#e3eafc',
+    backgroundColor: '#b4f4d7ff',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -536,13 +558,13 @@ const styles = StyleSheet.create({
   chartBtn: {
     marginTop: 8,
     alignSelf: 'flex-start',
-    backgroundColor: '#e3eafc',
+    backgroundColor: '#c3d3ccff',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 4,
   },
   chartBtnText: {
-    color: '#2D6A4F',
+    color: '#000000ff',
     fontWeight: 'bold',
     fontSize: 13,
   },
@@ -572,7 +594,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: '#e3eafc',
+    backgroundColor: '#c3d3ccff',
     marginRight: 10,
   },
   selectionBtnActive: {
