@@ -221,11 +221,9 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
             <Icon name="arrow-back" size={22} color="#222" />
           </TouchableOpacity>
         </View>
-        <View style={styles.leftSectionS}>
-          <Text style={styles.header}>Project overview</Text>
-        </View>
-        <View style={styles.centerSection}>
-          <Text style={styles.appTitle}>DefectTracker Pro</Text>
+        <View style={styles.middleSection}>
+          <Text style={styles.header}>Project</Text>
+          <Text style={styles.appTitle}>DefectTracker Pro</Text>   
         </View>
         <View style={styles.rightSection}>
           <TouchableOpacity
@@ -449,26 +447,37 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'flex-start',
   },
-    leftSectionS: {
-    flex: 1,
-    alignItems: 'flex-start',
-    paddingTop: 20,
-  },
-  centerSection: {
-    flex: 2,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
+   middleSection: {
+    flex:7 ,
+    flexDirection:'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    gap:20
   },
   rightSection: {
     flex: 1,
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'flex-end',
-    paddingTop: 8,
+  
   },
-  iconButton: {
-    padding: 6,
-    marginTop: 8,
+   appTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2D6A4F',
+  },
+
+  backButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    backgroundColor: '#2D6A4F',
+    borderRadius: 16,
+    alignSelf: 'flex-start',
+  },
+  backButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   header: {
     fontSize: 14,
