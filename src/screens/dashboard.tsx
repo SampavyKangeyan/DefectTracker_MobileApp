@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Dimensions, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Dimensions, Platform, Modal, SafeAreaView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -19,18 +19,18 @@ const PROJECTS: Project[] = [
   { id: '1', name: 'Defect Tracker', severity: 'High Risk' },
   { id: '2', name: 'QA testing', severity: 'High Risk' },
   { id: '3', name: 'Dashbord testing', severity: 'Low Risk' },
-  { id: '4', name: 'Project 1❕', severity: 'Low Risk' },
+  { id: '4', name: 'Project 1', severity: 'Low Risk' },
   { id: '5', name: 'Project 2', severity: 'High Risk' },
   { id: '6', name: 'Project 3', severity: 'Low Risk' },
   { id: '7', name: 'Project 4', severity: 'Low Risk' },
   { id: '8', name: 'Project 5', severity: 'Medium Risk' },
   { id: '9', name: 'Project 6', severity: 'Medium Risk' },
   { id: '10', name: 'Project 7', severity: 'Medium Risk' },
-  { id: '11', name: 'Project 8', severity: 'Low Risk' },
-  { id: '12', name: 'Project 9', severity: 'Medium Risk' },
-  { id: '13', name: 'Project 10', severity: 'Low Risk' },
-  { id: '14', name: 'Project 11', severity: 'Medium Risk' },
-  { id: '15', name: 'Project 12', severity: 'Low Risk' },
+  { id: '11', name: 'Project 9', severity: 'Medium Risk' },
+  // { id: '12', name: 'Project 8', severity: 'Low Risk' },
+  // { id: '13', name: 'Project 10', severity: 'Low Risk' },
+  // { id: '14', name: 'Project 11', severity: 'Medium Risk' },
+  // { id: '15', name: 'Project 12', severity: 'Low Risk' },
   // Add more projects as needed
 ];
 
@@ -47,6 +47,19 @@ const FILTERS = [
   { label: 'Low Risk', value: 'Low Risk' },
 ];
 
+const getSeverityColor = (filterValue: string) => {
+  switch (filterValue) {
+    case 'High Risk':
+      return '#e53935'; // Red
+    case 'Medium Risk':
+      return '#fbc02d'; // Orange
+    case 'Low Risk':
+      return '#43a047'; // Green
+    default:
+      return '#2D6A4F'; // Default color for "All Projects"
+  }
+};
+
 // Icon mapping for severity
 const SEVERITY_ICONS: Record<SeverityLevel, string> = {
   'High Risk': '❕',
@@ -56,6 +69,7 @@ const SEVERITY_ICONS: Record<SeverityLevel, string> = {
 
 const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, any> }) => {
   const [filter, setFilter] = useState('All');
+  const [notificationModalVisible, setNotificationModalVisible] = useState(false);
 
   // Responsive logic
   const screenWidth = Dimensions.get('window').width;
@@ -67,9 +81,19 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
     navigation.replace('Login');
   };
 
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('credentials');
+    navigation.replace('Login');
+  };
+
+  // Sort projects by severity: High > Medium > Low when "All Projects" is selected
+  const severityOrder: SeverityLevel[] = ['High Risk', 'Medium Risk', 'Low Risk'];
   const filteredProjects =
     filter === 'All'
-      ? PROJECTS
+      ? [...PROJECTS].sort(
+          (a, b) =>
+            severityOrder.indexOf(a.severity) - severityOrder.indexOf(b.severity)
+        )
       : PROJECTS.filter((p) => p.severity === filter);
 
   const renderProject = ({ item }: { item: Project }) => (
@@ -86,12 +110,37 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f7fafd' }}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={handleBack} style={styles.iconButton} accessibilityLabel="Back">
-          <Icon name="arrow-back" size={28} color="#222" />
-        </TouchableOpacity>
-        <Text style={styles.header}>Dashboard Overview</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f7fafd' }}>
+      <View style={styles.topBar}> 
+        <View style={styles.leftSection}>
+          <TouchableOpacity onPress={handleBack}  accessibilityLabel="Back">
+            <Icon name="arrow-back" size={22} color="#222" />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.middleSection}>
+          <Text style={styles.header}>Dashboard</Text>
+          <Text style={styles.appTitle}>DefectTracker Pro</Text>   
+        </View>
+        <View style={styles.rightSection}>
+          <TouchableOpacity
+            style={styles.notificationButton}
+            onPress={() => setNotificationModalVisible(true)}
+          >
+            <Icon name="notifications" size={20} color="#000000ff" />
+            <View style={styles.notificationBadge}>
+              <Text style={styles.badgeText}>
+                {PROJECTS.filter(p => p.severity === 'High Risk').length}
+              </Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={handleLogout}
+          >
+            <Icon name="logout" size={20} color="#e53935" />
+          </TouchableOpacity>
+        </View>
+
       </View>
       <ScrollView style={styles.container} contentContainerStyle={{ paddingTop: 0 }}>
         <Text style={styles.subheader}>
@@ -124,26 +173,32 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
             <Text style={styles.statusDesc}>Stable and on track</Text>
           </View>
         </View>
+
         <Text style={styles.sectionTitle}>All Projects</Text>
         <Text style={styles.sectionDesc}>Filter by severity</Text>
         <View style={styles.filterRow}>
-          {FILTERS.map(f => (
-            <TouchableOpacity
-              key={f.value}
-              style={[
-                styles.filterBtn,
-                filter === f.value && styles.filterBtnActive
-              ]}
-              onPress={() => setFilter(f.value)}
-            >
-              <Text style={[
-                styles.filterBtnText,
-                filter === f.value && styles.filterBtnTextActive
-              ]}>
-                {f.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {FILTERS.map(f => {
+            const severityColor = getSeverityColor(f.value);
+
+            return (
+              <TouchableOpacity
+                key={f.value}
+                style={[
+                  styles.filterBtn,
+                  filter === f.value && { backgroundColor: severityColor }
+                ]}
+                onPress={() => setFilter(f.value)}
+              >
+                <Text style={[
+                  styles.filterBtnText,
+                  { color: filter === f.value ? '#fff' : severityColor },
+                  filter === f.value && styles.filterBtnTextActive
+                ]}>
+                  {f.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
         <View style={styles.projectsGrid}>
           {filteredProjects.map((item) => (
@@ -159,9 +214,9 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
                 styles.projectCard,
                 {
                   backgroundColor: SEVERITY_COLORS[item.severity] || '#ccc',
-                  width: 120,
-                  height: 120,
-                  borderRadius: 60, // circle
+                  width: 150,
+                  height: 150,
+                  borderRadius: 75, // circle
                   margin: 10,
                 },
               ]}
@@ -179,28 +234,63 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
           ))}
         </View>
       </ScrollView>
-    </View>
+
+      {/* Notification Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={notificationModalVisible}
+        onRequestClose={() => setNotificationModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.notificationModalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>High Severity Notifications</Text>
+              <TouchableOpacity
+                onPress={() => setNotificationModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Icon name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.notificationList}>
+              {PROJECTS.filter(p => p.severity === 'High Risk').map((project) => (
+                <View key={project.id} style={styles.notificationItem}>
+                  <Icon name="warning" size={20} color="#e53935" />
+                  <View style={styles.notificationContent}>
+                    <Text style={styles.notificationTitle}>{project.name}</Text>
+                    <Text style={styles.notificationSubtitle}>High Risk - Requires immediate attention</Text>
+                  </View>
+                </View>
+              ))}
+              {PROJECTS.filter(p => p.severity === 'High Risk').length === 0 && (
+                <Text style={styles.noNotifications}>No critical notifications</Text>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f7fafd',
-    padding: 20,
+    backgroundColor: '#f5fffbff',
+    padding: 10,
   },
   header: {
-    fontSize: 28,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#222',
-    alignSelf: 'center',
-    // Remove marginTop and marginBottom for better alignment in row
-    marginTop: 30,
-    marginBottom: 0,
+   
+  
   },
   subheader: {
     fontSize: 15,
-    color: '#666',
+    color: '#000000ff',
     textAlign: 'center',
     marginBottom: 14,
   },
@@ -257,11 +347,13 @@ const styles = StyleSheet.create({
   },
   filterRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     marginVertical: 10,
-    backgroundColor: '#e3eafc',
+    backgroundColor: '#ffffffff',
     borderRadius: 20,
     padding: 4,
+    borderWidth:1,
+    borderColor:'#000000ff',
   },
   filterBtn: {
     paddingHorizontal: 10,
@@ -270,11 +362,7 @@ const styles = StyleSheet.create({
     marginRight: 1,
     backgroundColor: 'transparent',
   },
-  filterBtnActive: {
-    backgroundColor: '#1976d2',
-  },
   filterBtnText: {
-    color: '#1976d2',
     fontWeight: 'bold',
     position: 'relative',
   },
@@ -282,23 +370,41 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   topBar: {
+    display:'flex',
+    flexDirection: 'row',
+    marginTop:30 ,
+    alignItems: 'center',
+    marginHorizontal: 10,
+    minHeight: 40,
+  },
+  leftSection: {
+    flex: 1,
+    alignItems: 'flex-start',
+  },
+  middleSection: {
+    flex:7 ,
+    flexDirection:'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    gap:20
+  },
+  rightSection: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 4,
-    minHeight: 48,
-    paddingHorizontal: 0,
-    backgroundColor: 'transparent',
+    justifyContent: 'flex-end',
+  
   },
-  iconButton: {
-    padding: 6,
-    marginRight: 8,
-    marginTop: 30,
+   appTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2D6A4F',
   },
+
   backButton: {
     paddingHorizontal: 16,
     paddingVertical: 6,
-    backgroundColor: '#1976d2',
+    backgroundColor: '#2D6A4F',
     borderRadius: 16,
     alignSelf: 'flex-start',
   },
@@ -311,7 +417,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginTop: 10,
+    marginTop: 8,
     marginBottom: 30,
   },
   projectCard: {
@@ -352,6 +458,114 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 13,
+  },
+ 
+  severityBreakdownBtn: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginVertical: 12,
+    marginHorizontal: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  severityBreakdownContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  severityBreakdownText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    // marginLeft: 12,
+  },
+  notificationButton: {
+    position: 'relative',
+    padding: 8,
+ 
+  },
+  logoutButton: {
+    padding: 8,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 3,
+    right: 2,
+    backgroundColor: '#e53935',
+    borderRadius: 12,
+    minWidth: 12,
+    height: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  notificationModalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    margin: 20,
+    width: '90%',
+    maxHeight: '70%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    flex: 1,
+  },
+  closeButton: {
+    padding: 4,
+  },
+  notificationList: {
+    maxHeight: 300,
+  },
+  notificationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  notificationContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  notificationTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4,
+  },
+  notificationSubtitle: {
+    fontSize: 14,
+    color: '#666',
+  },
+  noNotifications: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#666',
+    padding: 20,
   },
 });
 

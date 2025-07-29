@@ -1,17 +1,38 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Modal } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { ScrollView as RNScrollView } from 'react-native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RouteProp } from '@react-navigation/native';
+import { PieChart } from 'react-native-chart-kit';
+import { DefectsReopenedChart, DefectDistributionChart } from './DefectPieCharts';
+import DefectsByModule from './DefectsByModule';
+import DefectToRemarkRatio from './DefectToRemarkRatio';
+import DefectDensityMeter from './DefectDensityMeter';
+import DefectSeverityIndex from './DefectSeverityIndex';
+import TimeDefectCharts from './TimeDefectCharts';
 
-interface ProjectDetailsProps {
-  route: {
-    params: {
-      id: string;
-      name: string;
-      severity: string;
-    };
+
+// Import the navigation types from App.tsx
+type RootStackParamList = {
+  Login: undefined;
+  Dashboard: undefined;
+  ProjectDetails: {
+    id: string;
+    name: string;
+    severity: string;
   };
-  navigation: any;
+  DefectSeverityBreakdown: undefined;
+};
+
+type ProjectDetailsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'ProjectDetails'>;
+type ProjectDetailsScreenRouteProp = RouteProp<RootStackParamList, 'ProjectDetails'>;
+
+export interface ProjectDetailsProps {
+  route: ProjectDetailsScreenRouteProp;
+  navigation: ProjectDetailsScreenNavigationProp;
 }
 
 const DEFECT_DATA = [
@@ -23,8 +44,8 @@ const DEFECT_DATA = [
     breakdown: [
       { label: 'REOPEN', color: '#f44336', count: 3 },
       { label: 'NEW', color: '#3f51b5', count: 50 },
-      { label: 'OPEN', color: '#4caf50', count: 5 },
-      { label: 'FIXED', color: '#8bc34a', count: 14 },
+      { label: 'OPEN', color: '#3f9d42ff', count: 5 },
+      { label: 'FIXED', color: '#00ff22ff', count: 14 },
       { label: 'CLOSED', color: '#607d8b', count: 37 },
       { label: 'REJECTED', color: '#b71c1c', count: 0 },
       { label: 'DUPLICATE', color: '#616161', count: 3 },
@@ -33,13 +54,13 @@ const DEFECT_DATA = [
   {
     severity: 'Medium Risk',
     color: '#fbc02d',
-    borderColor: '#fbc02d',
+    borderColor: '#f1fb2dff',
     total: 237,
     breakdown: [
       { label: 'REOPEN', color: '#f44336', count: 5 },
       { label: 'NEW', color: '#3f51b5', count: 126 },
-      { label: 'OPEN', color: '#4caf50', count: 10 },
-      { label: 'FIXED', color: '#8bc34a', count: 33 },
+      { label: 'OPEN', color: '#3f9d42ff', count: 10 },
+      { label: 'FIXED', color: '#00ff22ff', count: 33 },
       { label: 'CLOSED', color: '#607d8b', count: 60 },
       { label: 'REJECTED', color: '#b71c1c', count: 2 },
       { label: 'DUPLICATE', color: '#616161', count: 1 },
@@ -53,8 +74,8 @@ const DEFECT_DATA = [
     breakdown: [
       { label: 'REOPEN', color: '#f44336', count: 1 },
       { label: 'NEW', color: '#3f51b5', count: 57 },
-      { label: 'OPEN', color: '#4caf50', count: 0 },
-      { label: 'FIXED', color: '#8bc34a', count: 10 },
+      { label: 'OPEN', color: '#3f9d42ff', count: 0 },
+      { label: 'FIXED', color: '#00ff22ff', count: 10 },
       { label: 'CLOSED', color: '#607d8b', count: 24 },
       { label: 'REJECTED', color: '#b71c1c', count: 1 },
       { label: 'DUPLICATE', color: '#616161', count: 3 },
@@ -73,43 +94,173 @@ const PROJECTS = [
   { id: '8', name: 'Project 5', severity: 'Medium Risk' },
   { id: '9', name: 'Project 6', severity: 'Medium Risk' },
   { id: '10', name: 'Project 7', severity: 'Medium Risk' },
-  { id: '11', name: 'Project 8', severity: 'Low Risk' },
-  { id: '12', name: 'Project 9', severity: 'Medium Risk' },
-  { id: '13', name: 'Project 10', severity: 'Low Risk' },
-  { id: '14', name: 'Project 11', severity: 'Medium Risk' },
-  { id: '15', name: 'Project 12', severity: 'Low Risk' },
+   { id: '11', name: 'Project 9', severity: 'Medium Risk' },
+  // { id: '12', name: 'Project 8', severity: 'Low Risk' }, 
+  // { id: '13', name: 'Project 10', severity: 'Low Risk' },
+  // { id: '14', name: 'Project 11', severity: 'Medium Risk' },
+  // { id: '15', name: 'Project 12', severity: 'Low Risk' },
 ];
 
-const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
-  const { id, name, severity } = route.params;
+interface BreakdownItem {
+  label: string;
+  count: number;
+  color: string;
+}
+
+interface DefectDataType {
+  severity: string;
+  total: number;
+  color: string;
+  borderColor: string;
+  breakdown: BreakdownItem[];
+}
+
+const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
+  // Use local state for selected project
+  const [selectedProject, setSelectedProject] = useState({
+    id: route.params.id,
+    name: route.params.name,
+    severity: route.params.severity,
+  });
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedSeverity, setSelectedSeverity] = useState<DefectDataType | null>(null);
+  const [notificationModalVisible, setNotificationModalVisible] = useState(false);
 
   const handleBack = () => {
     navigation.goBack();
+  };
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('credentials');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  };
+
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'High Risk':
+        return '#e53935'; // Red
+      case 'Medium Risk':
+        return '#fbc02d'; // Yellow/Orange
+      case 'Low Risk':
+        return '#43a047'; // Green
+      default:
+        return '#666'; // Default gray
+    }
   };
 
   // Responsive logic for statusRow
   const screenWidth = Dimensions.get('window').width;
   const isSmallScreen = screenWidth < 400;
 
+  // Get defect data from DefectSeverityBreakdown component
+  const allDefectData: DefectDataType[] = [
+    {
+      severity: 'High Risk',
+      total: 99,
+      color: '#e53935',
+      borderColor: '#e53935',
+      breakdown: [
+        { label: 'CLOSED', count: 61, color: '#4caf50' },
+        { label: 'NEW', count: 11, color: '#ff9800' },
+        { label: 'OPEN', count: 4, color: '#2196f3' },
+        { label: 'REOPEN', count: 3, color: '#f44336' },
+        { label: 'FIXED', count: 12, color: '#00e676' },
+        { label: 'REJECTED', count: 8, color: '#9c27b0' },
+        { label: 'DUPLICATE', count: 15, color: '#607d8b' },
+      ]
+    },
+    {
+      severity: 'Medium Risk',
+      total: 64,
+      color: '#fbc02d',
+      borderColor: '#fbc02d',
+      breakdown: [
+        { label: 'CLOSED', count: 40, color: '#4caf50' },
+        { label: 'NEW', count: 8, color: '#ff9800' },
+        { label: 'OPEN', count: 6, color: '#2196f3' },
+        { label: 'REOPEN', count: 2, color: '#f44336' },
+        { label: 'FIXED', count: 8, color: '#00e676' },
+        { label: 'REJECTED', count: 5, color: '#9c27b0' },
+        { label: 'DUPLICATE', count: 5, color: '#607d8b' },
+      ]
+    },
+    {
+      severity: 'Low Risk',
+      total: 44,
+      color: '#43a047',
+      borderColor: '#43a047',
+      breakdown: [
+        { label: 'CLOSED', count: 28, color: '#4caf50' },
+        { label: 'NEW', count: 6, color: '#ff9800' },
+        { label: 'OPEN', count: 4, color: '#2196f3' },
+        { label: 'REOPEN', count: 1, color: '#f44336' },
+        { label: 'FIXED', count: 5, color: '#00e676' },
+        { label: 'REJECTED', count: 3, color: '#9c27b0' },
+        { label: 'DUPLICATE', count: 3, color: '#607d8b' },
+      ]
+    }
+  ];
+
+  const handleViewChart = (data: DefectDataType) => {
+    setSelectedSeverity(data);
+    setModalVisible(true);
+  };
+
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f7fafd' }}>
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={handleBack} style={styles.iconButton} accessibilityLabel="Back">
-          <Icon name="arrow-back" size={28} color="#222" />
-        </TouchableOpacity>
-        <Text style={styles.header}>Project Overview</Text>
+        <View style={styles.leftSection}>
+          <TouchableOpacity onPress={handleBack}>
+            <Icon name="arrow-back" size={22} color="#222" />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.middleSection}>
+          <Text style={styles.header}>Project</Text>
+          <Text style={styles.appTitle}>DefectTracker Pro</Text>   
+        </View>
+        <View style={styles.rightSection}>
+          <TouchableOpacity
+            style={styles.notificationButton}
+            onPress={() => setNotificationModalVisible(true)}
+          >
+            <Icon name="notifications" size={20} color="#000000ff" />
+            <View style={styles.notificationBadge}>
+              <Text style={styles.badgeText}>
+                {PROJECTS.filter(p => p.severity === 'High Risk').length}
+              </Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={handleLogout}
+          >
+            <Icon name="logout" size={20} color="#e53935" />
+          </TouchableOpacity>
+        </View>
       </View>
-      {/* Project Selection Bar */}
+      {/* Fix the selection bar at the top, outside the ScrollView */}
       <View style={styles.selectionBarContainer}>
         <Text style={styles.selectionLabel}>Project Selection</Text>
         <RNScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.selectionScroll}>
-          {PROJECTS.map((proj) => (
+          {[...PROJECTS].sort((a, b) => {
+            // Put selected project first
+            if (a.name === selectedProject.name) return -1;
+            if (b.name === selectedProject.name) return 1;
+            return 0;
+          }).map((proj) => (
             <TouchableOpacity
               key={proj.id + proj.name}
-              style={[styles.selectionBtn, name === proj.name && styles.selectionBtnActive]}
+              style={[styles.selectionBtn, selectedProject.name === proj.name && styles.selectionBtnActive]}
               onPress={() => {
-                if (proj.name !== name) {
-                  navigation.replace('ProjectDetails', {
+                if (proj.name !== selectedProject.name) {
+                  setSelectedProject({
                     id: proj.id,
                     name: proj.name,
                     severity: proj.severity,
@@ -117,91 +268,261 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
                 }
               }}
             >
-              <Text style={[styles.selectionBtnText, name === proj.name && styles.selectionBtnTextActive]}>{proj.name}</Text>
+              <Text style={[styles.selectionBtnText, selectedProject.name === proj.name && styles.selectionBtnTextActive]}>{proj.name}</Text>
             </TouchableOpacity>
           ))}
         </RNScrollView>
       </View>
-      <Text style={styles.title}>{name}</Text>
-      <Text style={styles.severity}>Severity: {severity}</Text>
-      {/* Defect Severity Breakdown Tables */}
-      <Text style={styles.sectionTitle}>Defect Severity Breakdown</Text>
-      <View style={[styles.statusRow, isSmallScreen && { flexDirection: 'column' }]}> {/* Responsive row/column */}
-        {DEFECT_DATA.map((def, idx) => (
-          <View key={def.severity} style={[styles.breakdownCard, { borderColor: def.borderColor, backgroundColor: '#fff', shadowColor: def.color }]}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6}}>
-              <Text style={[styles.breakdownTitle, { color: def.color }]}>{`Defects on ${def.severity.split(' ')[0]}`}</Text>
-              <Text style={styles.breakdownTotal}>{`Total: ${def.total}`}</Text>
-            </View>
-            {def.breakdown.map((item) => (
-              <View key={item.label} style={styles.breakdownRowItem}>
-                <View style={[styles.dot, { backgroundColor: item.color }]} />
-                <Text style={styles.breakdownLabel}>{item.label}</Text>
-                <Text style={styles.breakdownCount}>{item.count}</Text>
+      <ScrollView style={styles.container} contentContainerStyle={{ paddingTop: 0 }}>
+        {/* Project Selection Bar */}
+        <View style={styles.barContainer}>
+        <Text style={styles.title}>{selectedProject.name}</Text>
+        <Text style={styles.severityLabel}>Severity:</Text>
+        <Text style={[styles.severity, { color: getSeverityColor(selectedProject.severity) }]}>
+          {selectedProject.severity}
+        </Text>
+        </View>
+        {/* Defect Severity Breakdown Tables */}
+        <View style={styles.cardWithBorder}>
+        <Text style={styles.sectionTitle}>Defect Severity Breakdown</Text>
+        <View style={styles.cardsContainer}>
+          {allDefectData.map(data => (
+            <View
+              key={data.severity}
+              style={[
+                styles.breakdownCard,
+                {
+                  borderColor: data.borderColor,
+                  backgroundColor: '#fff',
+                  shadowColor: data.color,
+                  borderWidth: 2,
+                }
+              ]}
+            >
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10}}>
+                <Text style={[styles.breakdownTitle, { color: data.color }]}>
+                  {`Defects on ${data.severity.split(' ')[0]}`}
+                </Text>
+                <Text style={styles.breakdownTotal}>{`Total: ${data.total}`}</Text>
               </View>
-            ))}
-            <TouchableOpacity style={styles.chartBtn}>
-              <Text style={styles.chartBtnText}>View Chart</Text>
-            </TouchableOpacity>
+              {data.breakdown.map((item) => (
+                <View key={item.label} style={styles.breakdownRowItem}>
+                  <View style={[styles.dot, { backgroundColor: item.color }]} />
+                  <Text style={styles.breakdownLabel}>{item.label}</Text>
+                  <Text style={styles.breakdownCount}>{item.count}</Text>
+                </View>
+              ))}
+              <TouchableOpacity
+                style={styles.chartBtn}
+                onPress={() => handleViewChart(data)}
+              >
+                <Text style={styles.chartBtnText}>View Chart</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+        </View>
+        <DefectDensityMeter value={12} />
+        <View>
+          <DefectSeverityIndex value={75.0} />
+        </View>
+        <View>
+          <DefectToRemarkRatio />
+        </View>
+        <View style={[styles.cardWithBorder]}>
+          <DefectsReopenedChart />
+        </View>
+        <View style={[styles.cardWithBorder]}>
+          <DefectDistributionChart />
+        </View>
+        {/* Insert Time to Find Defects and Time to Fix Defects */}
+        <TimeDefectCharts />
+        <View style={[styles.cardWithBorder]}>
+          <DefectsByModule />
+        </View>
+      </ScrollView>
+
+      {/* Pie Chart Modal */}
+      {selectedSeverity && (
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>
+                  Status Breakdown for {selectedSeverity.severity.split(' ')[0]}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setModalVisible(false)}
+                  style={styles.closeButton}
+                >
+                  <Icon name="close" size={24} color="#333" />
+                </TouchableOpacity>
+              </View>
+
+              <PieChart
+                data={selectedSeverity.breakdown.map(item => ({
+                  name: item.label,
+                  population: item.count,
+                  color: item.color,
+                  legendFontColor: '#333',
+                  legendFontSize: 12,
+                }))}
+                width={screenWidth - 40}
+                height={180}
+                chartConfig={{
+                  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                }}
+                accessor="population"
+                backgroundColor="transparent"
+                paddingLeft="0"
+                absolute
+                hasLegend={true}
+                center={[0, 0]}
+              />
+            </View>
           </View>
-        ))}
-      </View>
-      <View style={{ height: 48 }} />
-      {/* Placeholder for graphs */}
-      <View style={styles.graphSection}>
-        <Text style={styles.graphTitle}>Defect Density</Text>
-        <View style={styles.graphPlaceholder} />
-      </View>
-      <View style={styles.graphSection}>
-        <Text style={styles.graphTitle}>Defect Severity Index</Text>
-        <View style={styles.graphPlaceholder} />
-      </View>
-      <View style={styles.graphSection}>
-        <Text style={styles.graphTitle}>Defect to Remark Ratio</Text>
-        <View style={styles.graphPlaceholder} />
-      </View>
-      {/* Add more graph sections as needed */}
-    </ScrollView>
+        </Modal>
+      )}
+
+      {/* Notification Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={notificationModalVisible}
+        onRequestClose={() => setNotificationModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.notificationModalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Critical Severity Notifications</Text>
+              <TouchableOpacity
+                onPress={() => setNotificationModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Icon name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.notificationList}>
+              {PROJECTS.filter(p => p.severity === 'High Risk').map((project) => (
+                <View key={project.id} style={styles.notificationItem}>
+                  <Icon name="warning" size={20} color="#ff0000ff" />
+                  <View style={styles.notificationContent}>
+                    <Text style={styles.notificationTitle}>{project.name}</Text>
+                    <Text style={styles.notificationSubtitle}>High Risk - Requires immediate attention</Text>
+                  </View>
+                </View>
+              ))}
+              {PROJECTS.filter(p => p.severity === 'High Risk').length === 0 && (
+                <Text style={styles.noNotifications}>No critical notifications</Text>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f7fafd',
-    padding: 20,
+    backgroundColor: '#f5fffbff',
+    padding: 10,
   },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
-    minHeight: 48,
+    justifyContent: 'space-between',
+    marginTop: 8,
+    marginBottom: 4,
+    minHeight: 20,
+    paddingHorizontal: 0,
+    paddingVertical:5,
     backgroundColor: 'transparent',
   },
-  iconButton: {
-    padding: 6,
-    marginRight: 8,
-    alignSelf: 'center',
-    marginTop: 20,
+  leftSection: {
+    flex: 1,
+    alignItems: 'flex-start',
+  },
+   middleSection: {
+    flex:7 ,
+    flexDirection:'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    gap:20
+  },
+  rightSection: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  
+  },
+   appTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2D6A4F',
+  },
+
+  backButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    backgroundColor: '#2D6A4F',
+    borderRadius: 16,
+    alignSelf: 'flex-start',
+  },
+  backButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   header: {
-    fontSize: 28,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#222',
+    textAlign: 'center',
+    marginTop: 2,
     marginBottom: 0,
-    marginTop: 20,
-    alignSelf: 'center',
   },
   title: {
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 8,
     color: '#222',
+  },
+  barContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },  
+  severityLabel: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 2,
+    fontWeight: '400',
   },
   severity: {
     fontSize: 16,
-    color: '#666',
     marginBottom: 5,
+    fontWeight: '500',
   },
   graphSection: {
     marginBottom: 28,
@@ -210,11 +531,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#1976d2',
+    color: '#2D6A4F',
   },
   graphPlaceholder: {
     height: 140,
-    backgroundColor: '#e3eafc',
+    backgroundColor: '#b4f4d7ff',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -278,21 +599,22 @@ const styles = StyleSheet.create({
   chartBtn: {
     marginTop: 8,
     alignSelf: 'flex-start',
-    backgroundColor: '#e3eafc',
+    backgroundColor: '#c3d3ccff',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 4,
   },
   chartBtnText: {
-    color: '#1976d2',
+    color: '#000000ff',
     fontWeight: 'bold',
     fontSize: 13,
   },
   selectionBarContainer: {
-    marginBottom: 16,
+    marginBottom: 2,
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 12,
+    marginHorizontal: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -313,11 +635,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: '#e3eafc',
+    backgroundColor: '#c3d3ccff',
     marginRight: 10,
   },
   selectionBtnActive: {
-    backgroundColor: '#1976d2',
+    backgroundColor: '#2D6A4F',
   },
   selectionBtnText: {
     color: '#222',
@@ -327,6 +649,116 @@ const styles = StyleSheet.create({
   selectionBtnTextActive: {
     color: '#fff',
   },
+  cardWithBorder: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    // padding: 16,
+    paddingHorizontal: 16,
+    marginBottom:25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    paddingBottom: 5,
+  },
+  cardsContainer: {
+    gap: 16,
+    marginBottom: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 10,
+    margin: 20,
+    width: '95%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    flex: 1,
+  },
+  closeButton: {
+    padding: 4,
+  },
+  notificationButton: {
+    position: 'relative',
+    padding: 8,
+    marginRight: 8,
+  },
+  logoutButton: {
+    padding: 8,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 3,
+    right: 2,
+    backgroundColor: '#e53935',
+    borderRadius: 12,
+    minWidth: 12,
+    height: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  notificationModalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    margin: 20,
+    width: '90%',
+    maxHeight: '70%',
+  },
+  notificationList: {
+    maxHeight: 300,
+  },
+  notificationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  notificationContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  notificationTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4,
+  },
+  notificationSubtitle: {
+    fontSize: 14,
+    color: '#666',
+  },
+  noNotifications: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#666',
+    padding: 20,
+  },
 });
 
-export default ProjectDetailsScreen; 
+export default Project;

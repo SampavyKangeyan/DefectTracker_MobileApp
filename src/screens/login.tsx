@@ -3,16 +3,13 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet,
   Alert, KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import type { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-type RootStackParamList = {
-  Login: undefined;
-  Dashboard: undefined;
-};
+import type { RootStackParamList } from '../../App';
 
 type LoginScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, 'Login'>;
@@ -70,9 +67,21 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={styles.container}>
+          {/* Back Button */}
+          <TouchableOpacity
+            onPress={() => navigation.replace('Intro')}
+            style={styles.iconButton}
+            accessibilityLabel="Back"
+          >
+            <Icon name="arrow-left" size={22} color="#ffffff" />
+          </TouchableOpacity>
           <View style={styles.card}>
             <View style={styles.iconCircle}>
-              <Icon name="bug-outline" size={32} color="#1976d2" />
+              <Image
+                source={require('../../assets/bug.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
             </View>
             <Text style={styles.title}>DefectTracker Pro</Text>
             <Text style={styles.subtitle}>Sign in to your account</Text>
@@ -86,8 +95,8 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
               autoCapitalize="none"
               returnKeyType="next"
               accessibilityLabel="Username input"
+              placeholderTextColor="#3d4642ff"
             />
-
             <Text style={styles.label}>Password</Text>
             <View style={styles.passwordInputWrapper}>
               <TextInput
@@ -98,6 +107,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
                 secureTextEntry={!showPassword}
                 returnKeyType="done"
                 accessibilityLabel="Password input"
+                placeholderTextColor="#3d4642ff"
               />
               <TouchableOpacity
                 style={styles.eyeIconAbsolute}
@@ -107,8 +117,8 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
               >
                 <Icon
                   name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                  size={24}
-                  color="#888"
+                  size={20}
+                  color="#2D6A4F"
                 />
               </TouchableOpacity>
             </View>
@@ -124,7 +134,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
                   <Icon
                     name={rememberMe ? 'checkbox-marked' : 'checkbox-blank-outline'}
                     size={24}
-                    color={rememberMe ? '#4cafaf' : '#bdbdbd'}
+                    color={rememberMe ? '#ffffffff' : '#ffffff'}
                   />
                 </TouchableOpacity>
                 <Text style={styles.rememberMeText}>Remember Me</Text>
@@ -137,12 +147,6 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
             <TouchableOpacity style={styles.button} onPress={handleLogin}>
               <Text style={styles.buttonText}>Sign In</Text>
             </TouchableOpacity>
-
-            <View style={styles.demoBox}>
-              <Text style={styles.demoTitle}>Demo Credentials:</Text>
-              <Text style={styles.demoText}>Username: admin</Text>
-              <Text style={styles.demoText}>Password: admin</Text>
-            </View>
           </View>
         </View>
       </ScrollView>
@@ -153,54 +157,80 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#eef3fd',
+    backgroundColor: '#2D6A4F',
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 20,
+    position: 'relative',
+  },
+  iconButton: {
+    position: 'absolute',
+    top: 32,
+    left: 18,
+    zIndex: 10,
+    padding: 6,
   },
   card: {
     width: '90%',
     maxWidth: 400,
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255,255,255,0.08)', // transparent white
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
-    elevation: 4,
+    // elevation: 4,
+    // Optional: add border and shadow for better visibility
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
+    shadowColor: '#000000',
+    shadowOffset: { width: 8, height: 8 },
+    shadowOpacity: 0.85,
+    shadowRadius: 8,
+    // backdropFilter is not supported in React Native, so ignore blur
   },
   iconCircle: {
-    backgroundColor: '#e6f0ff',
+    backgroundColor: '#ffffff',
     borderRadius: 40,
     width: 64,
     height: 64,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
+    overflow: 'hidden',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  lockIcon: {
-    fontSize: 32,
+  logoImage: {
+    width: 40,
+    height: 40,
+    tintColor: '#2D6A4F',
+    
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 4,
-    color: '#222',
+    color: '#ffffff',
   },
   subtitle: {
     fontSize: 15,
-    color: '#666',
+    color: '#ffffff',
     marginBottom: 18,
   },
   label: {
     alignSelf: 'flex-start',
     fontSize: 14,
-    color: '#000000ff',
+    color: '#ffffff',
+    fontWeight: 'bold',
     marginTop: 8,
     marginBottom: 2,
   },
   input: {
     width: '100%',
     borderWidth: 1,
-    borderColor: '#000000ff',
+    borderColor: '#ffffff',
     borderRadius: 8,
     padding: 10,
     marginBottom: 8,
@@ -214,7 +244,7 @@ const styles = StyleSheet.create({
   inputWithIcon: {
     width: '100%',
     borderWidth: 1,
-    borderColor: '#000000ff',
+    borderColor: '#ffffff',
     borderRadius: 8,
     padding: 10,
     paddingRight: 40, // space for the icon
@@ -249,43 +279,35 @@ const styles = StyleSheet.create({
   rememberMeText: {
     marginLeft: 4,
     fontSize: 13,
-    color: '#444',
+    color: '#ffffff',
   },
   forgotText: {
-    color: '#1976d2',
+    color: '#ffffff',
     fontSize: 13,
+    textDecorationLine:'underline',
   },
   button: {
-    backgroundColor: '#1976d2',
+    backgroundColor: '#2D6A4F',
     borderRadius: 8,
     paddingVertical: 12,
     width: '100%',
     alignItems: 'center',
     marginBottom: 16,
     marginTop: 4,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 2,
+    borderColor: '#ffffff',
+    
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: '#ffffff',
+    fontSize: 18,
     fontWeight: 'bold',
-  },
-  demoBox: {
-    backgroundColor: '#f1f8ff',
-    borderRadius: 8,
-    padding: 10,
-    width: '100%',
-    alignItems: 'flex-start',
-    marginTop: 8,
-  },
-  demoTitle: {
-    fontWeight: 'bold',
-    fontSize: 13,
-    marginBottom: 2,
-  },
-  demoText: {
-    fontSize: 13,
-    color: '#333',
-  },
+  }
 });
 
 export default LoginScreen;
