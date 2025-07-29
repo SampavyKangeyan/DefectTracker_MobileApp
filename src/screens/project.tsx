@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Modal } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Modal, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -13,6 +13,8 @@ import DefectToRemarkRatio from './DefectToRemarkRatio';
 import DefectDensityMeter from './DefectDensityMeter';
 import DefectSeverityIndex from './DefectSeverityIndex';
 import TimeDefectCharts from './TimeDefectCharts';
+import ProjectService from '../services/projectService';
+import { Project as ProjectType, LoadingState } from '../types/api';
 
 
 // Import the navigation types from App.tsx
@@ -83,7 +85,8 @@ const DEFECT_DATA = [
   },
 ];
 
-const PROJECTS = [
+// Fallback project data (in case API fails)
+const FALLBACK_PROJECTS: ProjectType[] = [
   { id: '1', name: 'Defect Tracker', severity: 'High Risk' },
   { id: '2', name: 'QA testing', severity: 'High Risk' },
   { id: '3', name: 'Project 1', severity: 'Low Risk' },
@@ -94,11 +97,7 @@ const PROJECTS = [
   { id: '8', name: 'Project 5', severity: 'Medium Risk' },
   { id: '9', name: 'Project 6', severity: 'Medium Risk' },
   { id: '10', name: 'Project 7', severity: 'Medium Risk' },
-   { id: '11', name: 'Project 9', severity: 'Medium Risk' },
-  // { id: '12', name: 'Project 8', severity: 'Low Risk' }, 
-  // { id: '13', name: 'Project 10', severity: 'Low Risk' },
-  // { id: '14', name: 'Project 11', severity: 'Medium Risk' },
-  // { id: '15', name: 'Project 12', severity: 'Low Risk' },
+  { id: '11', name: 'Project 9', severity: 'Medium Risk' },
 ];
 
 interface BreakdownItem {
@@ -116,6 +115,13 @@ interface DefectDataType {
 }
 
 const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
+  // State management
+  const [projects, setProjects] = useState<ProjectType[]>(FALLBACK_PROJECTS);
+  const [loadingState, setLoadingState] = useState<LoadingState>({
+    isLoading: false,
+    error: null,
+  });
+
   // Use local state for selected project
   const [selectedProject, setSelectedProject] = useState({
     id: route.params.id,
@@ -125,6 +131,29 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedSeverity, setSelectedSeverity] = useState<DefectDataType | null>(null);
   const [notificationModalVisible, setNotificationModalVisible] = useState(false);
+
+  // Load projects from API
+  const loadProjects = async () => {
+    try {
+      setLoadingState({ isLoading: true, error: null });
+      const apiProjects = await ProjectService.getProjects();
+      setProjects(apiProjects);
+      setLoadingState({ isLoading: false, error: null });
+    } catch (error: any) {
+      console.error('Failed to load projects:', error);
+      setLoadingState({
+        isLoading: false,
+        error: error.message || 'Failed to load projects'
+      });
+      // Keep fallback projects on error
+      setProjects(FALLBACK_PROJECTS);
+    }
+  };
+
+  // Load projects on component mount
+  useEffect(() => {
+    loadProjects();
+  }, []);
 
   const handleBack = () => {
     navigation.goBack();
@@ -233,7 +262,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
             <Icon name="notifications" size={20} color="#000000ff" />
             <View style={styles.notificationBadge}>
               <Text style={styles.badgeText}>
-                {PROJECTS.filter(p => p.severity === 'High Risk').length}
+                {projects.filter(p => p.severity === 'High Risk').length}
               </Text>
             </View>
           </TouchableOpacity>
@@ -410,7 +439,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
             </View>
 
             <View style={styles.notificationList}>
-              {PROJECTS.filter(p => p.severity === 'High Risk').map((project) => (
+              {projects.filter(p => p.severity === 'High Risk').map((project) => (
                 <View key={project.id} style={styles.notificationItem}>
                   <Icon name="warning" size={20} color="#ff0000ff" />
                   <View style={styles.notificationContent}>
@@ -419,7 +448,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
                   </View>
                 </View>
               ))}
-              {PROJECTS.filter(p => p.severity === 'High Risk').length === 0 && (
+              {projects.filter(p => p.severity === 'High Risk').length === 0 && (
                 <Text style={styles.noNotifications}>No critical notifications</Text>
               )}
             </View>
