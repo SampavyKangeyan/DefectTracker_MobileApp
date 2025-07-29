@@ -278,7 +278,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
       <View style={styles.selectionBarContainer}>
         <Text style={styles.selectionLabel}>Project Selection</Text>
         <RNScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.selectionScroll}>
-          {[...PROJECTS].sort((a, b) => {
+          {[...projects].sort((a, b) => {
             // Put selected project first
             if (a.name === selectedProject.name) return -1;
             if (b.name === selectedProject.name) return 1;
