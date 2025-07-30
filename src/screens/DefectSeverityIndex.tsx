@@ -1,8 +1,12 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import DefectSeverityIndexService from '../services/defectSeverityIndex';
+import { DefectSeverityIndexData } from '../types/api';
 
 interface DefectSeverityIndexProps {
-  value: number;
+  value?: number; // Optional for backward compatibility
+  projectId?: number; // For API integration
+  title?: string;
 }
 
 const getColor = (val: number) => {
@@ -11,16 +15,73 @@ const getColor = (val: number) => {
   return '#ef4444'; // red
 };
 
-const DefectSeverityIndex: React.FC<DefectSeverityIndexProps> = ({ value }) => {
-  const color = getColor(value);
+const DefectSeverityIndex: React.FC<DefectSeverityIndexProps> = ({
+  value,
+  projectId,
+  title = 'Defect Severity Index'
+}) => {
+  const [apiData, setApiData] = useState<DefectSeverityIndexData | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch data from API if projectId is provided
+  useEffect(() => {
+    const fetchDefectSeverityIndex = async () => {
+      if (projectId) {
+        setLoading(true);
+        setError(null);
+        try {
+          const data = await DefectSeverityIndexService.getDefectSeverityIndex(projectId);
+          setApiData(data);
+        } catch (err: any) {
+          setError(err.message || 'Failed to fetch defect severity index data');
+          console.error('Error fetching defect severity index:', err);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchDefectSeverityIndex();
+  }, [projectId]);
+
+  // Determine values to display (API data takes precedence)
+  const displayValue = apiData?.dsiPercentage ?? value ?? 0;
+  const color = getColor(displayValue);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <View style={styles.cardWithBorder}>
+        <Text style={styles.title}>{title}</Text>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Loading severity index...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <View style={styles.cardWithBorder}>
+        <Text style={styles.title}>{title}</Text>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>⚠️ {error}</Text>
+          <Text style={styles.errorSubtext}>Please check your connection and try again</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.cardWithBorder}>
-      <Text style={styles.title}>Defect Severity Index</Text>
+      <Text style={styles.title}>{title}</Text>
       <View style={styles.row}>
         <View style={styles.pillContainer}>
           <View style={styles.pillBg} />
-          <View style={[styles.pillFill, { height: `${value}%`, backgroundColor: color }]} />
+          <View style={[styles.pillFill, { height: `${displayValue}%`, backgroundColor: color }]} />
           <View style={styles.pillLabels}>
             <Text style={styles.pillLabel}>100</Text>
             <Text style={styles.pillLabel}>75</Text>
@@ -30,8 +91,18 @@ const DefectSeverityIndex: React.FC<DefectSeverityIndexProps> = ({ value }) => {
           </View>
         </View>
         <View style={styles.valueCol}>
-          <Text style={[styles.value, { color }]}>{value.toFixed(1)}</Text>
-          <Text style={styles.desc}>Weighted severity score (higher = more severe defects)</Text>
+          <Text style={[styles.value, { color }]}>{displayValue.toFixed(1)}</Text>
+          {/* Show additional API data if available */}
+          {apiData ? (
+            <View style={styles.detailContainer}>
+              <Text style={styles.desc}>{apiData.interpretation}</Text>
+              <Text style={styles.detailText}>
+                {apiData.totalDefects} defects • Score: {apiData.actualSeverityScore}/{apiData.maximumSeverityScore}
+              </Text>
+            </View>
+          ) : (
+            <Text style={styles.desc}>Weighted severity score (higher = more severe defects)</Text>
+          )}
         </View>
       </View>
     </View>
@@ -134,6 +205,43 @@ const styles = StyleSheet.create({
     color: '#374151',
     textAlign: 'center',
     marginTop: 2,
+  },
+  detailContainer: {
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  detailText: {
+    fontSize: 12,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+  },
+  errorContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#ef4444',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  errorSubtext: {
+    fontSize: 12,
+    color: '#6b7280',
+    textAlign: 'center',
   },
 });
 

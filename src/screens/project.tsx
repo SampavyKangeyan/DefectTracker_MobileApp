@@ -351,12 +351,22 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
           ))}
         </View>
         </View>
-        <DefectDensityMeter value={12} />
+        <DefectDensityMeter
+          projectId={parseInt(route.params.id)}
+          kloc={0.01} // You can make this dynamic based on project data
+          value={12} // Fallback value if API fails
+        />
         <View>
-          <DefectSeverityIndex value={75.0} />
+          <DefectSeverityIndex
+            projectId={parseInt(route.params.id)}
+            value={75.0} // Fallback value if API fails
+          />
         </View>
         <View>
-          <DefectToRemarkRatio />
+          <DefectToRemarkRatio
+            projectId={parseInt(route.params.id)}
+            staticRatio={0.92} // Fallback value if API fails
+          />
         </View>
         <View style={[styles.cardWithBorder]}>
           <DefectsReopenedChart />

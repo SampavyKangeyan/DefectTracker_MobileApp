@@ -1,10 +1,14 @@
 // DefectDensityMeter.tsx
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import Svg, { Path, Circle, Line, Text as SvgText } from 'react-native-svg';
+import DefectDensityMeterService from '../services/defectDensityMeter';
+import { DefectDensityData } from '../types/api';
 
 interface DefectDensityMeterProps {
-  value: number;
+  value?: number; // Optional for backward compatibility
+  projectId?: number; // For API integration
+  kloc?: number; // For API integration
   size?: number;
   title?: string;
   unit?: string;
@@ -21,11 +25,16 @@ const CustomSpeedometer: React.FC<{
   const centerX = size / 2;
   const centerY = size / 2;
 
+  // Visual scale for proper gauge display (matches the tick labels 0, 5, 10, 15)
+  const visualMaxValue = 15;
+
   // Calculate angle for the needle (180 degrees arc, from -90 to +90)
   const startAngle = -90;
   const endAngle = 90;
   const totalAngle = endAngle - startAngle;
-  const valueAngle = startAngle + (value / maxValue) * totalAngle;
+  // Use visual scale for correct needle positioning
+  const clampedValue = Math.min(value, visualMaxValue);
+  const valueAngle = startAngle + (clampedValue / visualMaxValue) * totalAngle;
   const needleAngleRad = (valueAngle * Math.PI) / 180;
 
   // Needle coordinates
@@ -46,9 +55,9 @@ const CustomSpeedometer: React.FC<{
     return `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`;
   };
 
-  // Create colored segments
-  const lowEndAngle = startAngle + (7 / maxValue) * totalAngle;
-  const mediumEndAngle = startAngle + (10 / maxValue) * totalAngle;
+  // Create colored segments based on defect density thresholds
+  const lowEndAngle = startAngle + (7 / visualMaxValue) * totalAngle;
+  const mediumEndAngle = startAngle + (10 / visualMaxValue) * totalAngle;
 
   return (
     <View style={{ alignItems: 'center', justifyContent: 'center', width: '100%' }}>
@@ -56,31 +65,31 @@ const CustomSpeedometer: React.FC<{
         {/* Low range (green) */}
         <Path
           d={createArcPath(startAngle, lowEndAngle, radius)}
-          stroke="#10b981"
-          strokeWidth="8"
+          stroke="#43a047"
+          strokeWidth="7"
           fill="none"
-          strokeLinecap="round"
+          strokeLinecap="square"
         />
         {/* Medium range (yellow) */}
         <Path
           d={createArcPath(lowEndAngle, mediumEndAngle, radius)}
-          stroke="#f59e0b"
-          strokeWidth="8"
+          stroke="#fbc02d"
+          strokeWidth="7"
           fill="none"
-          strokeLinecap="round"
+          strokeLinecap="square"
         />
         {/* High range (red) */}
         <Path
           d={createArcPath(mediumEndAngle, endAngle, radius)}
           stroke="#ef4444"
-          strokeWidth="8"
+          strokeWidth="7"
           fill="none"
-          strokeLinecap="round"
+          strokeLinecap="square"
         />
 
         {/* Tick marks */}
-        {Array.from({ length: 16 }, (_, i) => {
-          const tickAngle = startAngle + (i / 15) * totalAngle;
+        {Array.from({ length: 20 }, (_, i) => {
+          const tickAngle = startAngle + (i / 20) * totalAngle;
           const tickAngleRad = (tickAngle * Math.PI) / 180;
           const tickStartRadius = radius - 15;
           const tickEndRadius = radius - 5;
@@ -104,7 +113,7 @@ const CustomSpeedometer: React.FC<{
 
         {/* Tick labels */}
         {[0, 5, 10, 15].map((tickValue) => {
-          const tickAngle = startAngle + (tickValue / maxValue) * totalAngle;
+          const tickAngle = startAngle + (tickValue / visualMaxValue) * totalAngle;
           const tickAngleRad = (tickAngle * Math.PI) / 180;
           const labelRadius = radius - 25;
           const x = centerX + labelRadius * Math.cos(tickAngleRad);
@@ -125,15 +134,35 @@ const CustomSpeedometer: React.FC<{
           );
         })}
 
-        {/* Needle */}
-        <Line
-          x1={centerX}
-          y1={centerY}
-          x2={needleX}
-          y2={needleY}
+        {/* Needle - Tapered design with thin tip */}
+        <Path
+          d={(() => {
+            // Calculate perpendicular offset for needle width
+            const baseWidth = 3;
+            const tipWidth = 0.5;
+            const needleLength = Math.sqrt((needleX - centerX) ** 2 + (needleY - centerY) ** 2);
+            const unitX = (needleX - centerX) / needleLength;
+            const unitY = (needleY - centerY) / needleLength;
+            const perpX = -unitY;
+            const perpY = unitX;
+
+            // Base points (wider at center)
+            const baseX1 = centerX + perpX * baseWidth / 2;
+            const baseY1 = centerY + perpY * baseWidth / 2;
+            const baseX2 = centerX - perpX * baseWidth / 2;
+            const baseY2 = centerY - perpY * baseWidth / 2;
+
+            // Tip points (narrower at end)
+            const tipX1 = needleX + perpX * tipWidth / 2;
+            const tipY1 = needleY + perpY * tipWidth / 2;
+            const tipX2 = needleX - perpX * tipWidth / 2;
+            const tipY2 = needleY - perpY * tipWidth / 2;
+
+            return `M ${baseX1} ${baseY1} L ${tipX1} ${tipY1} L ${tipX2} ${tipY2} L ${baseX2} ${baseY2} Z`;
+          })()}
+          fill={currentColor}
           stroke={currentColor}
-          strokeWidth="3"
-          strokeLinecap="round"
+          strokeWidth="0.5"
         />
 
         {/* Center circle */}
@@ -150,13 +179,44 @@ const CustomSpeedometer: React.FC<{
 
 const DefectDensityMeter: React.FC<DefectDensityMeterProps> = ({
   value,
+  projectId,
+  kloc,
   size = 200,
   title = 'Defect Density',
 }) => {
+  const [apiData, setApiData] = useState<DefectDensityData | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch data from API if projectId and kloc are provided
+  useEffect(() => {
+    const fetchDefectDensity = async () => {
+      if (projectId && kloc) {
+        setLoading(true);
+        setError(null);
+        try {
+          const data = await DefectDensityMeterService.getDefectDensity(projectId, kloc);
+          setApiData(data);
+        } catch (err: any) {
+          setError(err.message || 'Failed to fetch defect density data');
+          console.error('Error fetching defect density:', err);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchDefectDensity();
+  }, [projectId, kloc]);
+
+  // Determine the value to display (API data takes precedence over prop value)
+  const displayValue = apiData?.defectDensity ?? value ?? 0;
+  const displayTitle = apiData?.projectName ? `${title} - ${apiData.projectName}` : title;
+
   // Define color based on defect density thresholds
   const getColorForValue = (val: number) => {
-    if (val < 7) return '#10b981'; // Green for Low (0-7)
-    if (val <= 10) return '#f59e0b'; // Yellow for Medium (7-10)
+    if (val < 7) return '#43a047'; // Green for Low (0-7)
+    if (val <= 10) return '#fbc02d'; // Yellow for Medium (7-10)
     return '#ef4444'; // Red for High (10+)
   };
 
@@ -167,28 +227,58 @@ const DefectDensityMeter: React.FC<DefectDensityMeterProps> = ({
   };
 
   // Configure speedometer with proper segment distribution
-  // We'll use 15 segments to match our 0-15 scale, with proper color distribution
   const maxValue = 20;
 
-  const currentColor = getColorForValue(value);
-  const currentLevel = getCurrentLevel(value);
+  const currentColor = getColorForValue(displayValue);
+  const currentLevel = getCurrentLevel(displayValue);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <View style={styles.cardWithBorder}>
+        <Text style={styles.title}>{title}</Text>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Loading defect density...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <View style={styles.cardWithBorder}>
+        <Text style={styles.title}>{title}</Text>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>⚠️ {error}</Text>
+          <Text style={styles.errorSubtext}>Please check your connection and try again</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
   <View style={styles.cardWithBorder}>
-      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.title}>{displayTitle}</Text>
       <CustomSpeedometer
-        value={Math.min(value, maxValue)}
+        value={Math.min(displayValue, maxValue)}
         size={size}
         maxValue={maxValue}
         currentColor={currentColor}
       />
       {/* Reduce marginTop in valueText for minimal gap */}
       <Text style={[styles.valueText, { color: currentColor, marginTop: -75 }]}>
-        {value.toFixed(2)}
+        {displayValue.toFixed(2)}
       </Text>
-      {/* <Text style={styles.unitText}>defects/1000 LOC</Text> */}
+      {/* Show additional API data if available */}
+      {apiData && (
+        <Text style={styles.unitText}>
+          {apiData.defects} defects in {apiData.kloc} KLOC
+        </Text>
+      )}
       <Text style={[styles.levelText, { color: currentColor }]}>
-        {currentLevel} Risk
+        {apiData?.meaning || `${currentLevel} Risk`}
       </Text>
 
       <View style={styles.legendContainer}>
@@ -314,6 +404,33 @@ const styles = StyleSheet.create({
   activeLegendText: {
     fontWeight: 'bold',
     color: '#1f2937',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+  },
+  errorContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#ef4444',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  errorSubtext: {
+    fontSize: 12,
+    color: '#6b7280',
+    textAlign: 'center',
   },
 });
 
