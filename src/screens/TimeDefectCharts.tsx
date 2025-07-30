@@ -137,7 +137,12 @@ const timeToFixLabels = [
   'Day 6', 'Day 7', 'Day 8', 'Day 9', 'Day 10'
 ];
 
-const TimeDefectCharts: React.FC = () => {
+interface TimeDefectChartsProps {
+  projectId?: number;
+  projectName?: string;
+}
+
+const TimeDefectCharts: React.FC<TimeDefectChartsProps> = ({ projectId, projectName }) => {
   const { width } = useWindowDimensions();
   const chartWidth = Math.min(width - 32, 350);
 
@@ -145,14 +150,20 @@ const TimeDefectCharts: React.FC = () => {
     <View>
       {/* Time to Find Defects */}
       <View style={sectionContainer}>
-        <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 10 }}>Time to Find Defects</Text>
+        <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 10 }}>
+          Time to Find Defects
+          {projectName && <Text style={{ fontSize: 14, fontWeight: '400', color: '#666' }}> - {projectName}</Text>}
+        </Text>
         <View style={{ alignItems: 'center', justifyContent: 'center', marginVertical: 8 }}>
           <LineChart data={timeToFindData} labels={timeToFindLabels} width={chartWidth} height={240} />
         </View>
       </View>
       {/* Time to Fix Defects */}
       <View style={sectionContainer}>
-        <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 10 }}>Time to Fix Defects</Text>
+        <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 10 }}>
+          Time to Fix Defects
+          {projectName && <Text style={{ fontSize: 14, fontWeight: '400', color: '#666' }}> - {projectName}</Text>}
+        </Text>
         <View style={{ alignItems: 'center', justifyContent: 'center', marginVertical: 8 }}>
           <LineChart data={timeToFixData} labels={timeToFixLabels} width={chartWidth} height={240} color={'#00b894'} />
         </View>

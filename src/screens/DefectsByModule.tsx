@@ -23,7 +23,12 @@ const MODULE_DEFECTS: ModuleDefect[] = [
 
 const total = MODULE_DEFECTS.reduce((sum, m) => sum + m.value, 0);
 
-const DefectsByModule: React.FC = () => {
+interface DefectsByModuleProps {
+  projectId?: number;
+  projectName?: string;
+}
+
+const DefectsByModule: React.FC<DefectsByModuleProps> = ({ projectId, projectName }) => {
   const widthAndHeight = 220;
 //   const series = MODULE_DEFECTS.map(m => m.count);
   const sliceColors = MODULE_DEFECTS.map(m => m.color);
@@ -33,7 +38,10 @@ const DefectsByModule: React.FC = () => {
 
   return (
     <View>
-      <Text style={styles.title}>Defects by Module</Text>
+      <Text style={styles.title}>
+        Defects by Module
+        {projectName && <Text style={styles.projectInfo}> - {projectName}</Text>}
+      </Text>
       {/* Pie Chart centered */}
       <View style={styles.chartContainer}>
         <PieChart
@@ -68,6 +76,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#222',
     marginBottom: 10,
+  },
+  projectInfo: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#666',
   },
   chartContainer: {
     alignItems: 'center',

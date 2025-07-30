@@ -211,7 +211,8 @@ const DefectDensityMeter: React.FC<DefectDensityMeterProps> = ({
 
   // Determine the value to display (API data takes precedence over prop value)
   const displayValue = apiData?.defectDensity ?? value ?? 0;
-  const displayTitle = apiData?.projectName ? `${title} - ${apiData.projectName}` : title;
+  // Use the passed title as-is if it already contains project info, otherwise append API project name
+  const displayTitle = title.includes(' - ') ? title : (apiData?.projectName ? `${title} - ${apiData.projectName}` : title);
 
   // Define color based on defect density thresholds
   const getColorForValue = (val: number) => {

@@ -16,6 +16,13 @@ import TimeDefectCharts from './TimeDefectCharts';
 import ProjectService from '../services/projectService';
 import { Project as ProjectType, LoadingState } from '../types/api';
 
+// Severity level constants
+const SEVERITY_LEVELS = {
+  HIGH_RISK: 'High Risk',
+  MEDIUM_RISK: 'Medium Risk',
+  LOW_RISK: 'Low Risk',
+} as const;
+
 
 // Import the navigation types from App.tsx
 type RootStackParamList = {
@@ -155,6 +162,31 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
     loadProjects();
   }, []);
 
+  // Update selected project when projects are loaded to ensure it matches an actual project
+  useEffect(() => {
+    if (projects.length > 0) {
+      // Try to find the current selected project in the loaded projects
+      const matchingProject = projects.find(p => p.id === selectedProject.id || p.name === selectedProject.name);
+
+      if (matchingProject) {
+        // Update selected project with the actual project data
+        setSelectedProject({
+          id: matchingProject.id,
+          name: matchingProject.name,
+          severity: matchingProject.severity,
+        });
+      } else {
+        // If no match found, default to the first project
+        const firstProject = projects[0];
+        setSelectedProject({
+          id: firstProject.id,
+          name: firstProject.name,
+          severity: firstProject.severity,
+        });
+      }
+    }
+  }, [projects]);
+
   const handleBack = () => {
     navigation.goBack();
   };
@@ -186,7 +218,6 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
 
   // Responsive logic for statusRow
   const screenWidth = Dimensions.get('window').width;
-  const isSmallScreen = screenWidth < 400;
 
   // Get defect data from DefectSeverityBreakdown component
   const allDefectData: DefectDataType[] = [
@@ -274,7 +305,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
           </TouchableOpacity>
         </View>
       </View>
-      {/* Fix the selection bar at the top, outside the ScrollView */}
+      
       <View style={styles.selectionBarContainer}>
         <Text style={styles.selectionLabel}>Project Selection</Text>
         <RNScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.selectionScroll}>
@@ -289,6 +320,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
               style={[styles.selectionBtn, selectedProject.name === proj.name && styles.selectionBtnActive]}
               onPress={() => {
                 if (proj.name !== selectedProject.name) {
+                  console.log(`Switching to project: ${proj.name} (ID: ${proj.id})`);
                   setSelectedProject({
                     id: proj.id,
                     name: proj.name,
@@ -352,32 +384,53 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
         </View>
         </View>
         <DefectDensityMeter
-          projectId={parseInt(route.params.id)}
+          key={`density-${selectedProject.name}`}
+          projectId={parseInt(selectedProject.id)}
           kloc={0.01} // You can make this dynamic based on project data
           value={12} // Fallback value if API fails
+          title={`Defect Density - ${selectedProject.name}`}
         />
         <View>
           <DefectSeverityIndex
-            projectId={parseInt(route.params.id)}
+            key={`severity-${selectedProject.id}`}
+            projectId={parseInt(selectedProject.id)}
             value={75.0} // Fallback value if API fails
+            title={`Defect Severity Index`}
           />
         </View>
         <View>
           <DefectToRemarkRatio
-            projectId={parseInt(route.params.id)}
+            key={`ratio-${selectedProject.id}`}
+            projectId={parseInt(selectedProject.id)}
             staticRatio={0.92} // Fallback value if API fails
           />
         </View>
         <View style={[styles.cardWithBorder]}>
-          <DefectsReopenedChart />
+          <DefectsReopenedChart
+            key={`reopened-${selectedProject.id}`}
+            projectId={parseInt(selectedProject.id)}
+            projectName={selectedProject.name}
+          />
         </View>
         <View style={[styles.cardWithBorder]}>
-          <DefectDistributionChart />
+          <DefectDistributionChart
+            key={`distribution-${selectedProject.id}`}
+            projectId={parseInt(selectedProject.id)}
+            projectName={selectedProject.name}
+          />
         </View>
         {/* Insert Time to Find Defects and Time to Fix Defects */}
-        <TimeDefectCharts />
+        <TimeDefectCharts
+          key={`time-${selectedProject.id}`}
+          projectId={parseInt(selectedProject.id)}
+          projectName={selectedProject.name}
+        />
         <View style={[styles.cardWithBorder]}>
-          <DefectsByModule />
+          <DefectsByModule
+            key={`module-${selectedProject.id}`}
+            projectId={parseInt(selectedProject.id)}
+            projectName={selectedProject.name}
+          />
         </View>
       </ScrollView>
 
@@ -449,7 +502,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
             </View>
 
             <View style={styles.notificationList}>
-              {projects.filter(p => p.severity === 'High Risk').map((project) => (
+              {projects.filter(p => p.severity === SEVERITY_LEVELS.HIGH_RISK).map((project) => (
                 <View key={project.id} style={styles.notificationItem}>
                   <Icon name="warning" size={20} color="#ff0000ff" />
                   <View style={styles.notificationContent}>
@@ -691,7 +744,7 @@ const styles = StyleSheet.create({
   cardWithBorder: {
     backgroundColor: '#fff',
     borderRadius: 12,
-    // padding: 16,
+    padding: 16,
     paddingHorizontal: 16,
     marginBottom:25,
     shadowColor: '#000',

@@ -2,7 +2,17 @@ import React from 'react';
 import { StyleSheet, View, Text, Dimensions } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 
-export const DefectsReopenedChart: React.FC = () => {
+interface DefectsReopenedChartProps {
+  projectId?: number;
+  projectName?: string;
+}
+
+interface DefectDistributionChartProps {
+  projectId?: number;
+  projectName?: string;
+}
+
+export const DefectsReopenedChart: React.FC<DefectsReopenedChartProps> = ({ projectId, projectName }) => {
   const screenWidth = Dimensions.get('window').width;
   const chartWidth = screenWidth - 40;
 
@@ -51,7 +61,10 @@ export const DefectsReopenedChart: React.FC = () => {
 
   return (
     <View>
-      <Text style={styles.title}>Defects Reopened Multiple Times</Text>
+      <Text style={styles.title}>
+        Defects Reopened Multiple Times
+        {projectName && <Text style={styles.projectInfo}> - {projectName}</Text>}
+      </Text>
       <PieChart
         data={reopenedData}
         width={chartWidth}
@@ -70,7 +83,7 @@ export const DefectsReopenedChart: React.FC = () => {
   );
 };
 
-export const DefectDistributionChart: React.FC = () => {
+export const DefectDistributionChart: React.FC<DefectDistributionChartProps> = ({ projectId, projectName }) => {
   const screenWidth = Dimensions.get('window').width;
   const chartWidth = screenWidth - 40;
 
@@ -112,7 +125,10 @@ export const DefectDistributionChart: React.FC = () => {
 
   return (
     <View >
-      <Text style={styles.title}>Defect Distribution by Type</Text>
+      <Text style={styles.title}>
+        Defect Distribution by Type
+        {projectName && <Text style={styles.projectInfo}> - {projectName}</Text>}
+      </Text>
       <PieChart
         data={typeData}
         width={chartWidth}
@@ -148,7 +164,7 @@ const DefectPieCharts: React.FC = () => {
 
 const styles = StyleSheet.create({
   chartContainer: {
-    marginBottom:40
+    marginBottom:100
   },
   pieWithBorder: {
     // Add white border between pie slices
@@ -162,6 +178,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     fontWeight: '600',
     color: '#222',
+  },
+  projectInfo: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#666',
   },
   legend: {
     fontSize: 14,
