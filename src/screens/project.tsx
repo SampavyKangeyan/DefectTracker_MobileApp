@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,6 +13,8 @@ import DefectToRemarkRatio from './DefectToRemarkRatio';
 import DefectDensityMeter from './DefectDensityMeter';
 import DefectSeverityIndex from './DefectSeverityIndex';
 import TimeDefectCharts from './TimeDefectCharts';
+import ProjectService from '../services/projectService';
+import type { Project } from '../types/api';
 
 
 // Import the navigation types from App.tsx
@@ -83,23 +85,8 @@ const DEFECT_DATA = [
   },
 ];
 
-const PROJECTS = [
-  { id: '1', name: 'Defect Tracker', severity: 'High Risk' },
-  { id: '2', name: 'QA testing', severity: 'High Risk' },
-  { id: '3', name: 'Project 1', severity: 'Low Risk' },
-  { id: '4', name: 'Project 2', severity: 'Low Risk' },
-  { id: '5', name: 'Dashbord testing', severity: 'High Risk' },
-  { id: '6', name: 'Project 3', severity: 'Low Risk' },
-  { id: '7', name: 'Project 4', severity: 'Low Risk' },
-  { id: '8', name: 'Project 5', severity: 'Medium Risk' },
-  { id: '9', name: 'Project 6', severity: 'Medium Risk' },
-  { id: '10', name: 'Project 7', severity: 'Medium Risk' },
-   { id: '11', name: 'Project 9', severity: 'Medium Risk' },
-  // { id: '12', name: 'Project 8', severity: 'Low Risk' }, 
-  // { id: '13', name: 'Project 10', severity: 'Low Risk' },
-  // { id: '14', name: 'Project 11', severity: 'Medium Risk' },
-  // { id: '15', name: 'Project 12', severity: 'Low Risk' },
-];
+
+
 
 interface BreakdownItem {
   label: string;
@@ -115,7 +102,15 @@ interface DefectDataType {
   breakdown: BreakdownItem[];
 }
 
-const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
+const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
+  // Constants
+  const HIGH_RISK_SEVERITY = 'High Risk';
+
+  // Project data state
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   // Use local state for selected project
   const [selectedProject, setSelectedProject] = useState({
     id: route.params.id,
@@ -125,6 +120,23 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedSeverity, setSelectedSeverity] = useState<DefectDataType | null>(null);
   const [notificationModalVisible, setNotificationModalVisible] = useState(false);
+
+  // Fetch projects on component mount
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const data = await ProjectService.getProjects();
+        setProjects(data);
+      } catch (err: any) {
+        setError(err.message);
+        console.error('Error fetching projects:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
 
   const handleBack = () => {
     navigation.goBack();
@@ -157,7 +169,6 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
 
   // Responsive logic for statusRow
   const screenWidth = Dimensions.get('window').width;
-  const isSmallScreen = screenWidth < 400;
 
   // Get defect data from DefectSeverityBreakdown component
   const allDefectData: DefectDataType[] = [
@@ -233,7 +244,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
             <Icon name="notifications" size={20} color="#000000ff" />
             <View style={styles.notificationBadge}>
               <Text style={styles.badgeText}>
-                {PROJECTS.filter(p => p.severity === 'High Risk').length}
+                {projects.filter(p => p.severity === HIGH_RISK_SEVERITY).length}
               </Text>
             </View>
           </TouchableOpacity>
@@ -249,7 +260,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
       <View style={styles.selectionBarContainer}>
         <Text style={styles.selectionLabel}>Project Selection</Text>
         <RNScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.selectionScroll}>
-          {[...PROJECTS].sort((a, b) => {
+          {[...projects].sort((a, b) => {
             // Put selected project first
             if (a.name === selectedProject.name) return -1;
             if (b.name === selectedProject.name) return 1;
@@ -274,6 +285,22 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
         </RNScrollView>
       </View>
       <ScrollView style={styles.container} contentContainerStyle={{ paddingTop: 0 }}>
+        {/* Loading and Error States */}
+        {loading && (
+          <View style={styles.barContainer}>
+            <Text style={styles.title}>Loading projects...</Text>
+          </View>
+        )}
+
+        {error && (
+          <View style={styles.barContainer}>
+            <Text style={styles.title}>Error loading projects</Text>
+            <Text style={styles.severityLabel}>{error}</Text>
+          </View>
+        )}
+
+        {!loading && !error && (
+          <>
         {/* Project Selection Bar */}
         <View style={styles.barContainer}>
         <Text style={styles.title}>{selectedProject.name}</Text>
@@ -340,6 +367,8 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
         <View style={[styles.cardWithBorder]}>
           <DefectsByModule />
         </View>
+        </>
+        )}
       </ScrollView>
 
       {/* Pie Chart Modal */}
@@ -410,7 +439,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
             </View>
 
             <View style={styles.notificationList}>
-              {PROJECTS.filter(p => p.severity === 'High Risk').map((project) => (
+              {projects.filter(p => p.severity === HIGH_RISK_SEVERITY).map((project) => (
                 <View key={project.id} style={styles.notificationItem}>
                   <Icon name="warning" size={20} color="#ff0000ff" />
                   <View style={styles.notificationContent}>
@@ -419,7 +448,7 @@ const Project: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
                   </View>
                 </View>
               ))}
-              {PROJECTS.filter(p => p.severity === 'High Risk').length === 0 && (
+              {projects.filter(p => p.severity === HIGH_RISK_SEVERITY).length === 0 && (
                 <Text style={styles.noNotifications}>No critical notifications</Text>
               )}
             </View>
@@ -761,4 +790,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Project;
+export default ProjectDetailsScreen;

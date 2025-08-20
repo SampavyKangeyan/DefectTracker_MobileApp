@@ -1,38 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Dimensions, Platform, Modal, SafeAreaView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Image } from 'react-native';
+import ProjectService from '../services/projectService';
+import { Project } from '../types/api';
 
 // Types
 type SeverityLevel = 'High Risk' | 'Medium Risk' | 'Low Risk';
-
-interface Project {
-  id: string;
-  name: string;
-  severity: SeverityLevel;
-}
-
-// Project data
-const PROJECTS: Project[] = [
-  { id: '1', name: 'Defect Tracker', severity: 'High Risk' },
-  { id: '2', name: 'QA testing', severity: 'High Risk' },
-  { id: '3', name: 'Dashbord testing', severity: 'Low Risk' },
-  { id: '4', name: 'Project 1', severity: 'Low Risk' },
-  { id: '5', name: 'Project 2', severity: 'High Risk' },
-  { id: '6', name: 'Project 3', severity: 'Low Risk' },
-  { id: '7', name: 'Project 4', severity: 'Low Risk' },
-  { id: '8', name: 'Project 5', severity: 'Medium Risk' },
-  { id: '9', name: 'Project 6', severity: 'Medium Risk' },
-  { id: '10', name: 'Project 7', severity: 'Medium Risk' },
-  { id: '11', name: 'Project 9', severity: 'Medium Risk' },
-  // { id: '12', name: 'Project 8', severity: 'Low Risk' },
-  // { id: '13', name: 'Project 10', severity: 'Low Risk' },
-  // { id: '14', name: 'Project 11', severity: 'Medium Risk' },
-  // { id: '15', name: 'Project 12', severity: 'Low Risk' },
-  // Add more projects as needed
-];
 
 const SEVERITY_COLORS: Record<SeverityLevel, string> = {
   'High Risk': '#e53935',
@@ -70,6 +46,26 @@ const SEVERITY_ICONS: Record<SeverityLevel, string> = {
 const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, any> }) => {
   const [filter, setFilter] = useState('All');
   const [notificationModalVisible, setNotificationModalVisible] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch projects on component mount
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const data = await ProjectService.getProjects();
+        setProjects(data);
+      } catch (err: any) {
+        setError(err.message);
+        console.error('Error fetching projects:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
 
   // Responsive logic
   const screenWidth = Dimensions.get('window').width;
@@ -90,11 +86,11 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
   const severityOrder: SeverityLevel[] = ['High Risk', 'Medium Risk', 'Low Risk'];
   const filteredProjects =
     filter === 'All'
-      ? [...PROJECTS].sort(
+      ? [...projects].sort(
           (a, b) =>
             severityOrder.indexOf(a.severity) - severityOrder.indexOf(b.severity)
         )
-      : PROJECTS.filter((p) => p.severity === filter);
+      : projects.filter((p) => p.severity === filter);
 
   const renderProject = ({ item }: { item: Project }) => (
     <View style={[
@@ -129,7 +125,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
             <Icon name="notifications" size={20} color="#000000ff" />
             <View style={styles.notificationBadge}>
               <Text style={styles.badgeText}>
-                {PROJECTS.filter(p => p.severity === 'High Risk').length}
+                {projects.filter(p => p.severity === 'High Risk').length}
               </Text>
             </View>
           </TouchableOpacity>
@@ -146,13 +142,28 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
         <Text style={styles.subheader}>
           Gain insights into your projects with real-time health metrics and status summaries
         </Text>
+
+        {loading && (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>Loading projects...</Text>
+          </View>
+        )}
+
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>Error loading projects: {error}</Text>
+          </View>
+        )}
+
+        {!loading && !error && (
+          <>
         <Text style={styles.sectionTitle}>Project Status Insights</Text>
         <View style={[styles.statusRow, isSmallScreen && { flexDirection: 'column' }]}> {/* Responsive row/column */}
           <View style={[styles.statusCard, { borderColor: '#e53935', marginBottom: isSmallScreen ? 12 : 0 }]}> {/* Add margin for stacked */}
             <Text style={styles.statusIcon}>❗</Text>
             <Text style={[styles.statusTitle, { color: '#e53935' }]}>High Risk Projects</Text>
             <Text style={styles.statusCount}>
-              {PROJECTS.filter(p => p.severity === 'High Risk').length}
+              {projects.filter(p => p.severity === 'High Risk').length}
             </Text>
             <Text style={styles.statusDesc}>Immediate attention required</Text>
           </View>
@@ -160,7 +171,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
             <Text style={styles.statusIcon}>⏰</Text>
             <Text style={[styles.statusTitle, { color: '#fbc02d' }]}>Medium Risk Projects</Text>
             <Text style={styles.statusCount}>
-              {PROJECTS.filter(p => p.severity === 'Medium Risk').length}
+              {projects.filter(p => p.severity === 'Medium Risk').length}
             </Text>
             <Text style={styles.statusDesc}>Monitor progress closely</Text>
           </View>
@@ -168,7 +179,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
             <Text style={styles.statusIcon}>✔️</Text>
             <Text style={[styles.statusTitle, { color: '#43a047' }]}>Low Risk Projects</Text>
             <Text style={styles.statusCount}>
-              {PROJECTS.filter(p => p.severity === 'Low Risk').length}
+              {projects.filter(p => p.severity === 'Low Risk').length}
             </Text>
             <Text style={styles.statusDesc}>Stable and on track</Text>
           </View>
@@ -233,6 +244,8 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
             </TouchableOpacity>
           ))}
         </View>
+        </>
+        )}
       </ScrollView>
 
       {/* Notification Modal */}
@@ -255,7 +268,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
             </View>
 
             <View style={styles.notificationList}>
-              {PROJECTS.filter(p => p.severity === 'High Risk').map((project) => (
+              {projects.filter(p => p.severity === 'High Risk').map((project) => (
                 <View key={project.id} style={styles.notificationItem}>
                   <Icon name="warning" size={20} color="#e53935" />
                   <View style={styles.notificationContent}>
@@ -264,7 +277,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
                   </View>
                 </View>
               ))}
-              {PROJECTS.filter(p => p.severity === 'High Risk').length === 0 && (
+              {projects.filter(p => p.severity === 'High Risk').length === 0 && (
                 <Text style={styles.noNotifications}>No critical notifications</Text>
               )}
             </View>
@@ -566,6 +579,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     padding: 20,
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  errorContainer: {
+    padding: 20,
+    alignItems: 'center',
+    backgroundColor: '#ffebee',
+    margin: 10,
+    borderRadius: 8,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#c62828',
+    textAlign: 'center',
   },
 });
 

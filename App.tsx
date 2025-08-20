@@ -6,7 +6,7 @@ import 'react-native-gesture-handler';
 import IntroScreen from './src/screens/Intro';
 import LoginScreen from './src/screens/login';
 import DashboardScreen from './src/screens/dashboard';
-import Project from './src/screens/project';
+import ProjectDetailsScreen from './src/screens/project';
 import DefectSeverityBreakdown from './src/screens/DefectSeverityBreakdown';
 
 // Define the navigation parameter types
@@ -35,7 +35,7 @@ function App() {
           <Stack.Screen name="Intro" component={IntroScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
-          <Stack.Screen name="ProjectDetails" component={Project} />
+          <Stack.Screen name="ProjectDetails" component={ProjectDetailsScreen} />
           <Stack.Screen name="DefectSeverityBreakdown" component={DefectSeverityBreakdown} />
         </Stack.Navigator>
       </View>
