@@ -50,7 +50,7 @@ export const DefectsReopenedChart: React.FC = () => {
   };
 
   return (
-    <View>
+    <View  style={styles.chartContainer}> 
       <Text style={styles.title}>Defects Reopened Multiple Times</Text>
       <PieChart
         data={reopenedData}
@@ -111,7 +111,7 @@ export const DefectDistributionChart: React.FC = () => {
   };
 
   return (
-    <View >
+    <View style={styles.chartContainer} >
       <Text style={styles.title}>Defect Distribution by Type</Text>
       <PieChart
         data={typeData}
@@ -136,10 +136,10 @@ export const DefectDistributionChart: React.FC = () => {
 const DefectPieCharts: React.FC = () => {
   return (
     <View>
-      <View style={styles.chartContainer}>
+      <View >
         <DefectsReopenedChart />
       </View>
-      <View style={styles.chartContainer}>
+      <View >
         <DefectDistributionChart />
       </View>
     </View>
@@ -148,6 +148,7 @@ const DefectPieCharts: React.FC = () => {
 
 const styles = StyleSheet.create({
   chartContainer: {
+    paddingTop: 16,
     marginBottom:40
   },
   pieWithBorder: {

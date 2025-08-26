@@ -4,8 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Image } from 'react-native';
-import ProjectService from '../services/projectService';
-import { Project } from '../types/api';
+import ProjectService from '../services/projectServic';
+import { Project } from '../services/projectServic';
 
 // Types
 type SeverityLevel = 'High Risk' | 'Medium Risk' | 'Low Risk';
@@ -98,7 +98,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
       { backgroundColor: SEVERITY_COLORS[item.severity] || '#ccc' }
     ]}>
       <Text style={styles.projectIcon}>✔️</Text>
-      <Text style={styles.projectName}>{item.name}</Text>
+      <Text style={styles.projectName}>{item.project_name}</Text>
       <View style={styles.severityBadge}>
         <Text style={styles.severityText}>{item.severity}</Text>
       </View>
@@ -125,7 +125,8 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
             <Icon name="notifications" size={20} color="#000000ff" />
             <View style={styles.notificationBadge}>
               <Text style={styles.badgeText}>
-                {projects.filter(p => p.severity === 'High Risk').length}
+                {/* Simplified filter */}
+                {projects.reduce((count, p) => p.severity === 'High Risk' ? count + 1 : count, 0)}
               </Text>
             </View>
           </TouchableOpacity>
@@ -212,37 +213,44 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
           })}
         </View>
         <View style={styles.projectsGrid}>
-          {filteredProjects.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              activeOpacity={0.85}
-              onPress={() => navigation.navigate('ProjectDetails', {
-                id: item.id,
-                name: item.name,
-                severity: item.severity,
-              })}
-              style={[
-                styles.projectCard,
-                {
-                  backgroundColor: SEVERITY_COLORS[item.severity] || '#ccc',
-                  width: 150,
-                  height: 150,
-                  borderRadius: 75, // circle
-                  margin: 10,
-                },
-              ]}
-            >
-              {item.severity === 'High Risk' ? (
-                <Text style={[styles.projectIcon, { color: '#000' }]}>❕</Text>
-              ) : (
-                <Text style={styles.projectIcon}>{SEVERITY_ICONS[item.severity]}</Text>
-              )}
-              <Text style={styles.projectName}>{item.name}</Text>
-              <View style={styles.severityBadge}>
-                <Text style={styles.severityText}>{item.severity}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+          {filteredProjects.length === 0 ? (
+            <Text style={{ textAlign: 'center', color: '#666', marginTop: 20 }}>
+              No projects available.
+            </Text>
+          ) : (
+            filteredProjects.map((item, idx) => (
+              <TouchableOpacity
+                key={item.id ? item.id : `project-${idx}`}
+                activeOpacity={0.85}
+                onPress={() => navigation.navigate('ProjectDetails', {
+                  id: item.id,
+                  name: item.project_name,
+                  severity: item.severity,
+                })}
+                style={[
+                  styles.projectCard,
+                  {
+                    backgroundColor: SEVERITY_COLORS[item.severity] || '#ccc',
+                    width: 150,
+                    height: 150,
+                    borderRadius: 75, // circle
+                    margin: 10,
+                  },
+                ]}
+              >
+                {item.severity === 'High Risk' ? (
+                  <Text style={[styles.projectIcon, { color: '#000' }]}>❕</Text>
+                ) : (
+                  <Text style={styles.projectIcon}>{SEVERITY_ICONS[item.severity]}</Text>
+                )}
+                {/* Show project name or fallback */}
+                <Text style={styles.projectName}>{item.project_name ? item.project_name : 'Unnamed Project'}</Text>
+                <View style={styles.severityBadge}>
+                  <Text style={styles.severityText}>{item.severity}</Text>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
         </>
         )}
@@ -268,12 +276,15 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
             </View>
 
             <View style={styles.notificationList}>
+              {/* Simplified filter and fixed error */}
               {projects.filter(p => p.severity === 'High Risk').map((project) => (
                 <View key={project.id} style={styles.notificationItem}>
                   <Icon name="warning" size={20} color="#e53935" />
                   <View style={styles.notificationContent}>
-                    <Text style={styles.notificationTitle}>{project.name}</Text>
-                    <Text style={styles.notificationSubtitle}>High Risk - Requires immediate attention</Text>
+                    <Text style={styles.notificationTitle}>{project.project_name}</Text>
+                    <Text style={styles.notificationSubtitle}>
+                      <Text>High Risk - Requires immediate attention</Text>
+                    </Text>
                   </View>
                 </View>
               ))}

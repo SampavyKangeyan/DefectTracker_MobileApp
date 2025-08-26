@@ -13,8 +13,8 @@ import DefectToRemarkRatio from './DefectToRemarkRatio';
 import DefectDensityMeter from './DefectDensityMeter';
 import DefectSeverityIndex from './DefectSeverityIndex';
 import TimeDefectCharts from './TimeDefectCharts';
-import ProjectService from '../services/projectService';
-import type { Project } from '../types/api';
+import ProjectService from '../services/projectServic';
+import { Project } from '../services/projectServic';
 
 
 // Import the navigation types from App.tsx
@@ -114,7 +114,7 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
   // Use local state for selected project
   const [selectedProject, setSelectedProject] = useState({
     id: route.params.id,
-    name: route.params.name,
+    project_name: route.params.name,
     severity: route.params.severity,
   });
   const [modalVisible, setModalVisible] = useState(false);
@@ -262,24 +262,26 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
         <RNScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.selectionScroll}>
           {[...projects].sort((a, b) => {
             // Put selected project first
-            if (a.name === selectedProject.name) return -1;
-            if (b.name === selectedProject.name) return 1;
+            if (a.project_name === selectedProject.project_name) return -1;
+            if (b.project_name === selectedProject.project_name) return 1;
             return 0;
           }).map((proj) => (
             <TouchableOpacity
-              key={proj.id + proj.name}
-              style={[styles.selectionBtn, selectedProject.name === proj.name && styles.selectionBtnActive]}
+              key={proj.id + proj.project_name}
+              style={[styles.selectionBtn, selectedProject.project_name === proj.project_name && styles.selectionBtnActive]}
               onPress={() => {
-                if (proj.name !== selectedProject.name) {
+                if (proj.project_name !== selectedProject.project_name) {
                   setSelectedProject({
                     id: proj.id,
-                    name: proj.name,
+                    project_name: proj.project_name,
                     severity: proj.severity,
                   });
                 }
               }}
             >
-              <Text style={[styles.selectionBtnText, selectedProject.name === proj.name && styles.selectionBtnTextActive]}>{proj.name}</Text>
+              <Text style={[styles.selectionBtnText, selectedProject.project_name === proj.project_name && styles.selectionBtnTextActive]}>
+                {proj.project_name}
+              </Text>
             </TouchableOpacity>
           ))}
         </RNScrollView>
@@ -303,7 +305,7 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
           <>
         {/* Project Selection Bar */}
         <View style={styles.barContainer}>
-        <Text style={styles.title}>{selectedProject.name}</Text>
+        <Text style={styles.title}>{selectedProject.project_name}</Text>
         <Text style={styles.severityLabel}>Severity:</Text>
         <Text style={[styles.severity, { color: getSeverityColor(selectedProject.severity) }]}>
           {selectedProject.severity}
@@ -443,7 +445,7 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
                 <View key={project.id} style={styles.notificationItem}>
                   <Icon name="warning" size={20} color="#ff0000ff" />
                   <View style={styles.notificationContent}>
-                    <Text style={styles.notificationTitle}>{project.name}</Text>
+                    <Text style={styles.notificationTitle}>{project.project_name}</Text>
                     <Text style={styles.notificationSubtitle}>High Risk - Requires immediate attention</Text>
                   </View>
                 </View>

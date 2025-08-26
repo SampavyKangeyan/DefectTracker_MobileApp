@@ -3,6 +3,7 @@ import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 
 // API Configuration matching the provided specification
 const API_BASE_URL = 'http://192.168.1.131:3000/api';
+
 const API_TIMEOUT = 10000; // 10 seconds
 
 // Create axios instance with base configuration

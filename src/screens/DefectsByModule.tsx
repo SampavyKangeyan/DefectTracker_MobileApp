@@ -32,10 +32,10 @@ const DefectsByModule: React.FC = () => {
   const sortedModules = [...MODULE_DEFECTS].sort((a, b) => b.value - a.value);
 
   return (
-    <View>
+    <View style={styles.chartContainer}>
       <Text style={styles.title}>Defects by Module</Text>
       {/* Pie Chart centered */}
-      <View style={styles.chartContainer}>
+      <View >
         <PieChart
           widthAndHeight={widthAndHeight}
           series={MODULE_DEFECTS}
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   chartContainer: {
-    alignItems: 'center',
+    paddingTop: 16,
     marginBottom: 20,
   },
   legendGrid: {
