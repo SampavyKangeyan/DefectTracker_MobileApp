@@ -351,7 +351,7 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
           ))}
         </View>
         </View>
-        <DefectDensityMeter value={12} />
+        <DefectDensityMeter projectId={selectedProject.id} />
         <View>
           <DefectSeverityIndex value={75.0} />
         </View>
