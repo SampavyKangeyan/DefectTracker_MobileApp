@@ -1,10 +1,11 @@
 // DefectDensityMeter.tsx
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import Svg, { Path, Circle, Line, Text as SvgText } from 'react-native-svg';
+import apiClient from '../services/api';
 
 interface DefectDensityMeterProps {
-  value: number;
+  projectId: string | number;
   size?: number;
   title?: string;
   unit?: string;
@@ -149,10 +150,33 @@ const CustomSpeedometer: React.FC<{
 };
 
 const DefectDensityMeter: React.FC<DefectDensityMeterProps> = ({
-  value,
+  projectId,
   size = 200,
   title = 'Defect Density',
 }) => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [defectDensity, setDefectDensity] = useState<number>(0);
+  const [riskLevel, setRiskLevel] = useState<string>('Low');
+
+  useEffect(() => {
+    const fetchDefectDensity = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await apiClient.get(`/dashboard/defect-density/${projectId}`);
+        const data = res.data?.data;
+        setDefectDensity(data?.defect_density ?? 0);
+        setRiskLevel(data?.risk_assessment?.level ?? 'Low');
+      } catch (err: any) {
+        setError('Failed to load defect density');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDefectDensity();
+  }, [projectId]);
+
   // Define color based on defect density thresholds
   const getColorForValue = (val: number) => {
     if (val < 7) return '#10b981'; // Green for Low (0-7)
@@ -160,49 +184,55 @@ const DefectDensityMeter: React.FC<DefectDensityMeterProps> = ({
     return '#ef4444'; // Red for High (10+)
   };
 
-  const getCurrentLevel = (val: number) => {
-    if (val < 7) return 'Low';
-    if (val <= 10) return 'Medium';
-    return 'High';
-  };
+  // Use backend riskLevel for display
+  const currentColor = getColorForValue(defectDensity);
 
-  // Configure speedometer with proper segment distribution
-  // We'll use 15 segments to match our 0-15 scale, with proper color distribution
-  const maxValue = 20;
+  if (loading) {
+    return (
+      <View style={styles.cardWithBorder}>
+        <Text style={styles.title}>{title}</Text>
+        <ActivityIndicator size="large" color="#2D6A4F" />
+      </View>
+    );
+  }
 
-  const currentColor = getColorForValue(value);
-  const currentLevel = getCurrentLevel(value);
+  if (error) {
+    return (
+      <View style={styles.cardWithBorder}>
+        <Text style={styles.title}>{title}</Text>
+        <Text style={{ color: '#c62828', textAlign: 'center' }}>{error}</Text>
+      </View>
+    );
+  }
 
   return (
-  <View style={styles.cardWithBorder}>
+    <View style={styles.cardWithBorder}>
       <Text style={styles.title}>{title}</Text>
       <CustomSpeedometer
-        value={Math.min(value, maxValue)}
+        value={Math.min(defectDensity, 20)}
         size={size}
-        maxValue={maxValue}
+        maxValue={20}
         currentColor={currentColor}
       />
-      {/* Reduce marginTop in valueText for minimal gap */}
       <Text style={[styles.valueText, { color: currentColor, marginTop: -75 }]}>
-        {value.toFixed(2)}
+        {defectDensity.toFixed(2)}
       </Text>
-      {/* <Text style={styles.unitText}>defects/1000 LOC</Text> */}
       <Text style={[styles.levelText, { color: currentColor }]}>
-        {currentLevel} Risk
+        {riskLevel} Risk
       </Text>
 
       <View style={styles.legendContainer}>
         <View
           style={[
             styles.legendItem,
-            currentLevel === 'Low' && styles.activeLegendItem,
+            riskLevel === 'Low' && styles.activeLegendItem,
           ]}
         >
           <View style={[styles.legendDot, { backgroundColor: '#10b981' }]} />
           <Text
             style={[
               styles.legendText,
-              currentLevel === 'Low' && styles.activeLegendText,
+              riskLevel === 'Low' && styles.activeLegendText,
             ]}
           >
             Low (0-7)
@@ -211,14 +241,14 @@ const DefectDensityMeter: React.FC<DefectDensityMeterProps> = ({
         <View
           style={[
             styles.legendItem,
-            currentLevel === 'Medium' && styles.activeLegendItem,
+            riskLevel === 'Medium' && styles.activeLegendItem,
           ]}
         >
           <View style={[styles.legendDot, { backgroundColor: '#f59e0b' }]} />
           <Text
             style={[
               styles.legendText,
-              currentLevel === 'Medium' && styles.activeLegendText,
+              riskLevel === 'Medium' && styles.activeLegendText,
             ]}
           >
             Medium (7-10)
@@ -227,21 +257,21 @@ const DefectDensityMeter: React.FC<DefectDensityMeterProps> = ({
         <View
           style={[
             styles.legendItem,
-            currentLevel === 'High' && styles.activeLegendItem,
+            riskLevel === 'High' && styles.activeLegendItem,
           ]}
         >
           <View style={[styles.legendDot, { backgroundColor: '#ef4444' }]} />
           <Text
             style={[
               styles.legendText,
-              currentLevel === 'High' && styles.activeLegendText,
+              riskLevel === 'High' && styles.activeLegendText,
             ]}
           >
             High (10+)
           </Text>
         </View>
       </View>
-    </View>  
+    </View>
   );
 };
 
