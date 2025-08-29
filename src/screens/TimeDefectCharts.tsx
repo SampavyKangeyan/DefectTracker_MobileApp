@@ -43,7 +43,7 @@ const LineChart: React.FC<LineChartProps> = ({
           transform={`rotate(-90, 10, ${height / 2 + 10})`}
           fontWeight="bold"
         >
-          Defects Count
+          Valid Defects Count
         </SvgText>
         {/* Grid lines and labels */}
         {[...Array(6)].map((_, i) => {

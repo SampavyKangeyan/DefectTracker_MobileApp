@@ -356,7 +356,7 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
           <DefectSeverityIndex value={75.0} />
         </View>
         <View>
-          <DefectToRemarkRatio />
+          <DefectToRemarkRatio projectId={selectedProject.id} />
         </View>
         <View style={[styles.cardWithBorder]}>
           <DefectsReopenedChart />

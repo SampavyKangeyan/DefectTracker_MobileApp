@@ -1,52 +1,77 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 
-const STATIC_DEFECT_TO_REMARK_RATIO = 0.92;
+const API_BASE_URL = 'http://192.168.1.30:3000/api';
 
-const DefectToRemarkRatio: React.FC = () => {
-  // Calculate fill percent for the bar (max 1.0)
-  const fillPercent = Math.min(STATIC_DEFECT_TO_REMARK_RATIO, 1.0);
+interface DefectToRemarkRatioProps {
+  projectId: string;
+}
+
+const DefectToRemarkRatio: React.FC<DefectToRemarkRatioProps> = ({ projectId }) => {
+  const [ratio, setRatio] = useState<number | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchRatio = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(`${API_BASE_URL}/dashboard/defect-remark-ratio/${projectId}`);
+        if (!response.ok) throw new Error('Failed to fetch ratio');
+        const data = await response.json();
+        // Get percentage value from API response
+        setRatio(data.data?.defect_remark_ratio ?? 0);
+      } catch (err: any) {
+        setError('Error fetching ratio');
+        setRatio(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRatio();
+  }, [projectId]);
+
+  // Calculate fill percent for the bar (max 100%)
+  const fillPercent = Math.min(ratio ?? 0, 100) / 100;
 
   return (
     <View style={styles.cardWithBorder}>
       <Text style={styles.title}>Defect to Remark Ratio</Text>
       <View style={styles.ratioCard}>
-        <Text style={styles.ratioValue}>{STATIC_DEFECT_TO_REMARK_RATIO}</Text>
-        <Text style={styles.ratioLabel}>Critical</Text>
-        <View style={styles.ratioBar}>
-          <View style={[styles.ratioBarFill, { width: `${fillPercent * 100}%` }]} />
-        </View>
-        <View style={styles.ratioBarLabels}>
-          <Text style={styles.ratioBarLabelNum}>0.0</Text>
-          <Text style={styles.ratioBarLabelNum}>0.5</Text>
-          <Text style={styles.ratioBarLabelNum}>1.0</Text>
-        </View>
+        {loading ? (
+          <ActivityIndicator size="small" color="#e53935" />
+        ) : error ? (
+          <Text style={{ color: 'red', marginBottom: 8 }}>{error}</Text>
+        ) : (
+          <>
+            <Text style={styles.ratioValue}>
+              {ratio !== null ? `${ratio.toFixed(2)}%` : '0%'}
+            </Text>
+            <Text style={styles.ratioLabel}>
+              {(ratio ?? 0) > 80 ? 'Critical' : 'Normal'}
+            </Text>
+            <View style={styles.ratioBar}>
+              <View style={[styles.ratioBarFill, { width: `${fillPercent * 100}%` }]} />
+            </View>
+            <View style={styles.ratioBarLabels}>
+              <Text style={styles.ratioBarLabelNum}>0%</Text>
+              <Text style={styles.ratioBarLabelNum}>50%</Text>
+              <Text style={styles.ratioBarLabelNum}>100%</Text>
+            </View>
+          </>
+        )}
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  // card: {
-  //   backgroundColor: '#fff',
-  //   borderRadius: 16,
-  //   padding: 16,
-  //   margin: 16,
-  //   shadowColor: '#000',
-  //   shadowOffset: { width: 0, height: 2 },
-  //   shadowOpacity: 0.08,
-  //   shadowRadius: 6,
-  //   elevation: 3,
-  //   width: '92%',
-  //   alignSelf: 'center',
-  //   borderWidth: 2,
-  //   borderColor: '#e3eafc',
-  // },
-    cardWithBorder: {
+  cardWithBorder: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
-    marginBottom:25,
+    marginBottom: 25,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
