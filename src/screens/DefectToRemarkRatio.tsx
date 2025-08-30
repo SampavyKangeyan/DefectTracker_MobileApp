@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import apiClient from '../services/api';
 
-const API_BASE_URL = 'http://192.168.1.30:3000/api';
 
 interface DefectToRemarkRatioProps {
   projectId: string;
@@ -17,11 +17,9 @@ const DefectToRemarkRatio: React.FC<DefectToRemarkRatioProps> = ({ projectId }) 
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`${API_BASE_URL}/dashboard/defect-remark-ratio/${projectId}`);
-        if (!response.ok) throw new Error('Failed to fetch ratio');
-        const data = await response.json();
-        // Get percentage value from API response
-        setRatio(data.data?.defect_remark_ratio ?? 0);
+        const response = await apiClient.get(`/dashboard/defect-remark-ratio/${projectId}`);
+        // Use response.data directly (axios style)
+        setRatio(response.data?.data?.defect_remark_ratio ?? 0);
       } catch (err: any) {
         setError('Error fetching ratio');
         setRatio(null);

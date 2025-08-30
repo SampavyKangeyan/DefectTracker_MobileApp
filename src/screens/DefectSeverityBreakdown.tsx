@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Dimensions, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PieChart } from 'react-native-chart-kit';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { StackNavigationProp } from '@react-navigation/stack';
+import apiClient from '../services/api'; // <-- Use apiClient for requests
 
 type RootStackParamList = {
   Dashboard: undefined;
@@ -19,77 +20,49 @@ type DefectSeverityBreakdownNavigationProp = StackNavigationProp<RootStackParamL
 
 interface DefectSeverityBreakdownProps {
   navigation: DefectSeverityBreakdownNavigationProp;
+  projectId: string; // <-- Add this line
 }
 
 interface BreakdownItem {
-  label: string;
+  status: string;
   count: number;
   color: string;
 }
 
 interface DefectData {
-  severity: string;
-  total: number;
+  severity_name: string;
   color: string;
-  borderColor: string;
+  total: number;
   breakdown: BreakdownItem[];
 }
 
-const DefectSeverityBreakdown: React.FC<DefectSeverityBreakdownProps> = ({ navigation }) => {
+const DefectSeverityBreakdown: React.FC<DefectSeverityBreakdownProps> = ({ navigation, projectId }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedSeverity, setSelectedSeverity] = useState<DefectData | null>(null);
+  const [defectData, setDefectData] = useState<DefectData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const screenWidth = Dimensions.get('window').width;
 
-  // Sample data for different severity levels
-  const defectDataHigh: DefectData = {
-    severity: 'High Risk',
-    total: 99,
-    color: '#e53935',
-    borderColor: '#e53935',
-    breakdown: [
-      { label: 'CLOSED', count: 61, color: '#4caf50' },
-      { label: 'NEW', count: 11, color: '#ff9800' },
-      { label: 'OPEN', count: 4, color: '#2196f3' },
-      { label: 'REOPEN', count: 3, color: '#f44336' },
-      { label: 'FIXED', count: 12, color: '#00e676' },
-      { label: 'REJECTED', count: 8, color: '#9c27b0' },
-      { label: 'DUPLICATE', count: 15, color: '#607d8b' },
-    ]
-  };
-
-  const defectDataMedium: DefectData = {
-    severity: 'Medium Risk',
-    total: 64,
-    color: '#fbc02d',
-    borderColor: '#fbc02d',
-    breakdown: [
-      { label: 'CLOSED', count: 40, color: '#4caf50' },
-      { label: 'NEW', count: 8, color: '#ff9800' },
-      { label: 'OPEN', count: 6, color: '#2196f3' },
-      { label: 'REOPEN', count: 2, color: '#f44336' },
-      { label: 'FIXED', count: 8, color: '#00e676' },
-      { label: 'REJECTED', count: 5, color: '#9c27b0' },
-      { label: 'DUPLICATE', count: 5, color: '#607d8b' },
-    ]
-  };
-
-  const defectDataLow: DefectData = {
-    severity: 'Low Risk',
-    total: 44,
-    color: '#43a047',
-    borderColor: '#43a047',
-    breakdown: [
-      { label: 'CLOSED', count: 28, color: '#4caf50' },
-      { label: 'NEW', count: 6, color: '#ff9800' },
-      { label: 'OPEN', count: 4, color: '#2196f3' },
-      { label: 'REOPEN', count: 1, color: '#f44336' },
-      { label: 'FIXED', count: 5, color: '#00e676' },
-      { label: 'REJECTED', count: 3, color: '#9c27b0' },
-      { label: 'DUPLICATE', count: 3, color: '#607d8b' },
-    ]
-  };
-
-  const allDefectData = [defectDataHigh, defectDataMedium, defectDataLow];
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await apiClient.get(`/dashboard/defect-severity-breakdown/${projectId}`);
+        const json = res.data;
+        if (json.status === 'success' && Array.isArray(json.data)) {
+          setDefectData(json.data);
+        } else {
+          setError('Failed to load data');
+        }
+      } catch (err) {
+        setError('Failed to load data');
+      }
+      setLoading(false);
+    };
+    fetchData();
+  }, [projectId]);
 
   const handleViewChart = (data: DefectData) => {
     setSelectedSeverity(data);
@@ -98,11 +71,11 @@ const DefectSeverityBreakdown: React.FC<DefectSeverityBreakdownProps> = ({ navig
 
   const renderDefectCard = (defectData: DefectData) => (
     <View
-      key={defectData.severity}
+      key={defectData.severity_name}
       style={[
         styles.breakdownCard,
         { 
-          borderColor: defectData.borderColor, 
+          borderColor: defectData.color, 
           backgroundColor: '#fff', 
           shadowColor: defectData.color,
           borderWidth: 2,
@@ -111,14 +84,14 @@ const DefectSeverityBreakdown: React.FC<DefectSeverityBreakdownProps> = ({ navig
     >
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10}}>
         <Text style={[styles.breakdownTitle, { color: defectData.color }]}>
-          {`Defects on ${defectData.severity.split(' ')[0]}`}
+          {`Defects on ${defectData.severity_name}`}
         </Text>
         <Text style={styles.breakdownTotal}>{`Total: ${defectData.total}`}</Text>
       </View>
       {defectData.breakdown.map((item) => (
-        <View key={item.label} style={styles.breakdownRowItem}>
+        <View key={item.status} style={styles.breakdownRowItem}>
           <View style={[styles.dot, { backgroundColor: item.color }]} />
-          <Text style={styles.breakdownLabel}>{item.label}</Text>
+          <Text style={styles.breakdownLabel}>{item.status}</Text>
           <Text style={styles.breakdownCount}>{item.count}</Text>
         </View>
       ))}
@@ -135,7 +108,7 @@ const DefectSeverityBreakdown: React.FC<DefectSeverityBreakdownProps> = ({ navig
     if (!selectedSeverity) return null;
 
     const chartData = selectedSeverity.breakdown.map(item => ({
-      name: item.label,
+      name: item.status,
       population: item.count,
       color: item.color,
       legendFontColor: '#333',
@@ -158,7 +131,7 @@ const DefectSeverityBreakdown: React.FC<DefectSeverityBreakdownProps> = ({ navig
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                Status Breakdown for {selectedSeverity.severity.split(' ')[0]}
+                Status Breakdown for {selectedSeverity.severity_name}
               </Text>
               <TouchableOpacity 
                 onPress={() => setModalVisible(false)}
@@ -167,7 +140,6 @@ const DefectSeverityBreakdown: React.FC<DefectSeverityBreakdownProps> = ({ navig
                 <Icon name="close" size={24} color="#333" />
               </TouchableOpacity>
             </View>
-            
             <PieChart
               data={chartData}
               width={screenWidth - 40}
@@ -193,9 +165,15 @@ const DefectSeverityBreakdown: React.FC<DefectSeverityBreakdownProps> = ({ navig
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.cardWithBorder}>
-      <View style={styles.cardsContainer}>
-        {allDefectData.map(data => renderDefectCard(data))}
-      </View>
+        {loading ? (
+          <ActivityIndicator size="large" color="#2D6A4F" />
+        ) : error ? (
+          <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>
+        ) : (
+          <ScrollView contentContainerStyle={styles.cardsContainer}>
+            {defectData.map(data => renderDefectCard(data))}
+          </ScrollView>
+        )}
       </View>
       {renderPieChart()}
     </SafeAreaView>
@@ -207,7 +185,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f7fafd',
   },
-    cardWithBorder: {
+  cardWithBorder: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
@@ -308,4 +286,6 @@ const styles = StyleSheet.create({
   },
 });
 
+
 export default DefectSeverityBreakdown;
+

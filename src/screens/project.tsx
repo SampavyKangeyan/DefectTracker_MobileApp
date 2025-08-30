@@ -6,7 +6,6 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { ScrollView as RNScrollView } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
-import { PieChart } from 'react-native-chart-kit';
 import { DefectsReopenedChart, DefectDistributionChart } from './DefectPieCharts';
 import DefectsByModule from './DefectsByModule';
 import DefectToRemarkRatio from './DefectToRemarkRatio';
@@ -15,6 +14,7 @@ import DefectSeverityIndex from './DefectSeverityIndex';
 import TimeDefectCharts from './TimeDefectCharts';
 import ProjectService from '../services/projectServic';
 import { Project } from '../services/projectServic';
+import DefectSeverityBreakdown from './DefectSeverityBreakdown';
 
 
 // Import the navigation types from App.tsx
@@ -37,71 +37,6 @@ export interface ProjectDetailsProps {
   navigation: ProjectDetailsScreenNavigationProp;
 }
 
-const DEFECT_DATA = [
-  {
-    severity: 'High Risk',
-    color: '#e53935',
-    borderColor: '#e53935',
-    total: 112,
-    breakdown: [
-      { label: 'REOPEN', color: '#f44336', count: 3 },
-      { label: 'NEW', color: '#3f51b5', count: 50 },
-      { label: 'OPEN', color: '#3f9d42ff', count: 5 },
-      { label: 'FIXED', color: '#00ff22ff', count: 14 },
-      { label: 'CLOSED', color: '#607d8b', count: 37 },
-      { label: 'REJECTED', color: '#b71c1c', count: 0 },
-      { label: 'DUPLICATE', color: '#616161', count: 3 },
-    ],
-  },
-  {
-    severity: 'Medium Risk',
-    color: '#fbc02d',
-    borderColor: '#f1fb2dff',
-    total: 237,
-    breakdown: [
-      { label: 'REOPEN', color: '#f44336', count: 5 },
-      { label: 'NEW', color: '#3f51b5', count: 126 },
-      { label: 'OPEN', color: '#3f9d42ff', count: 10 },
-      { label: 'FIXED', color: '#00ff22ff', count: 33 },
-      { label: 'CLOSED', color: '#607d8b', count: 60 },
-      { label: 'REJECTED', color: '#b71c1c', count: 2 },
-      { label: 'DUPLICATE', color: '#616161', count: 1 },
-    ],
-  },
-  {
-    severity: 'Low Risk',
-    color: '#43a047',
-    borderColor: '#43a047',
-    total: 96,
-    breakdown: [
-      { label: 'REOPEN', color: '#f44336', count: 1 },
-      { label: 'NEW', color: '#3f51b5', count: 57 },
-      { label: 'OPEN', color: '#3f9d42ff', count: 0 },
-      { label: 'FIXED', color: '#00ff22ff', count: 10 },
-      { label: 'CLOSED', color: '#607d8b', count: 24 },
-      { label: 'REJECTED', color: '#b71c1c', count: 1 },
-      { label: 'DUPLICATE', color: '#616161', count: 3 },
-    ],
-  },
-];
-
-
-
-
-interface BreakdownItem {
-  label: string;
-  count: number;
-  color: string;
-}
-
-interface DefectDataType {
-  severity: string;
-  total: number;
-  color: string;
-  borderColor: string;
-  breakdown: BreakdownItem[];
-}
-
 const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation }) => {
   // Constants
   const HIGH_RISK_SEVERITY = 'High Risk';
@@ -117,8 +52,6 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
     project_name: route.params.name,
     severity: route.params.severity,
   });
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedSeverity, setSelectedSeverity] = useState<DefectDataType | null>(null);
   const [notificationModalVisible, setNotificationModalVisible] = useState(false);
 
   // Fetch projects on component mount
@@ -169,60 +102,6 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
 
   // Responsive logic for statusRow
   const screenWidth = Dimensions.get('window').width;
-
-  // Get defect data from DefectSeverityBreakdown component
-  const allDefectData: DefectDataType[] = [
-    {
-      severity: 'High Risk',
-      total: 99,
-      color: '#e53935',
-      borderColor: '#e53935',
-      breakdown: [
-        { label: 'CLOSED', count: 61, color: '#4caf50' },
-        { label: 'NEW', count: 11, color: '#ff9800' },
-        { label: 'OPEN', count: 4, color: '#2196f3' },
-        { label: 'REOPEN', count: 3, color: '#f44336' },
-        { label: 'FIXED', count: 12, color: '#00e676' },
-        { label: 'REJECTED', count: 8, color: '#9c27b0' },
-        { label: 'DUPLICATE', count: 15, color: '#607d8b' },
-      ]
-    },
-    {
-      severity: 'Medium Risk',
-      total: 64,
-      color: '#fbc02d',
-      borderColor: '#fbc02d',
-      breakdown: [
-        { label: 'CLOSED', count: 40, color: '#4caf50' },
-        { label: 'NEW', count: 8, color: '#ff9800' },
-        { label: 'OPEN', count: 6, color: '#2196f3' },
-        { label: 'REOPEN', count: 2, color: '#f44336' },
-        { label: 'FIXED', count: 8, color: '#00e676' },
-        { label: 'REJECTED', count: 5, color: '#9c27b0' },
-        { label: 'DUPLICATE', count: 5, color: '#607d8b' },
-      ]
-    },
-    {
-      severity: 'Low Risk',
-      total: 44,
-      color: '#43a047',
-      borderColor: '#43a047',
-      breakdown: [
-        { label: 'CLOSED', count: 28, color: '#4caf50' },
-        { label: 'NEW', count: 6, color: '#ff9800' },
-        { label: 'OPEN', count: 4, color: '#2196f3' },
-        { label: 'REOPEN', count: 1, color: '#f44336' },
-        { label: 'FIXED', count: 5, color: '#00e676' },
-        { label: 'REJECTED', count: 3, color: '#9c27b0' },
-        { label: 'DUPLICATE', count: 3, color: '#607d8b' },
-      ]
-    }
-  ];
-
-  const handleViewChart = (data: DefectDataType) => {
-    setSelectedSeverity(data);
-    setModalVisible(true);
-  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#f7fafd' }}>
@@ -313,43 +192,12 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
         </View>
         {/* Defect Severity Breakdown Tables */}
         <View style={styles.cardWithBorder}>
-        <Text style={styles.sectionTitle}>Defect Severity Breakdown</Text>
-        <View style={styles.cardsContainer}>
-          {allDefectData.map(data => (
-            <View
-              key={data.severity}
-              style={[
-                styles.breakdownCard,
-                {
-                  borderColor: data.borderColor,
-                  backgroundColor: '#fff',
-                  shadowColor: data.color,
-                  borderWidth: 2,
-                }
-              ]}
-            >
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10}}>
-                <Text style={[styles.breakdownTitle, { color: data.color }]}>
-                  {`Defects on ${data.severity.split(' ')[0]}`}
-                </Text>
-                <Text style={styles.breakdownTotal}>{`Total: ${data.total}`}</Text>
-              </View>
-              {data.breakdown.map((item) => (
-                <View key={item.label} style={styles.breakdownRowItem}>
-                  <View style={[styles.dot, { backgroundColor: item.color }]} />
-                  <Text style={styles.breakdownLabel}>{item.label}</Text>
-                  <Text style={styles.breakdownCount}>{item.count}</Text>
-                </View>
-              ))}
-              <TouchableOpacity
-                style={styles.chartBtn}
-                onPress={() => handleViewChart(data)}
-              >
-                <Text style={styles.chartBtnText}>View Chart</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
+          <Text style={styles.sectionTitle}>Defect Severity Breakdown</Text>
+          {/* Pass navigation prop as required by DefectSeverityBreakdown */}
+          <DefectSeverityBreakdown
+            projectId={selectedProject.id}
+            navigation={navigation as any} // Type assertion to fix navigation prop type issue
+          />
         </View>
         <DefectDensityMeter projectId={selectedProject.id} />
         <View>
@@ -372,54 +220,6 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
         </>
         )}
       </ScrollView>
-
-      {/* Pie Chart Modal */}
-      {selectedSeverity && (
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => setModalVisible(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>
-                  Status Breakdown for {selectedSeverity.severity.split(' ')[0]}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => setModalVisible(false)}
-                  style={styles.closeButton}
-                >
-                  <Icon name="close" size={24} color="#333" />
-                </TouchableOpacity>
-              </View>
-
-              <PieChart
-                data={selectedSeverity.breakdown.map(item => ({
-                  name: item.label,
-                  population: item.count,
-                  color: item.color,
-                  legendFontColor: '#333',
-                  legendFontSize: 12,
-                }))}
-                width={screenWidth - 40}
-                height={180}
-                chartConfig={{
-                  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                }}
-                accessor="population"
-                backgroundColor="transparent"
-                paddingLeft="0"
-                absolute
-                hasLegend={true}
-                center={[0, 0]}
-              />
-            </View>
-          </View>
-        </Modal>
-      )}
 
       {/* Notification Modal */}
       <Modal
@@ -793,3 +593,4 @@ const styles = StyleSheet.create({
 });
 
 export default ProjectDetailsScreen;
+
