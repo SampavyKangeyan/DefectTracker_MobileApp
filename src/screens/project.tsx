@@ -207,7 +207,7 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
           <DefectToRemarkRatio projectId={selectedProject.id} />
         </View>
         <View style={[styles.cardWithBorder]}>
-          <DefectsReopenedChart />
+          <DefectsReopenedChart projectId={selectedProject.id}/>
         </View>
         <View style={[styles.cardWithBorder]}>
           <DefectDistributionChart />
