@@ -164,17 +164,15 @@ const DefectSeverityBreakdown: React.FC<DefectSeverityBreakdownProps> = ({ navig
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.cardWithBorder}>
-        {loading ? (
-          <ActivityIndicator size="large" color="#2D6A4F" />
-        ) : error ? (
-          <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>
-        ) : (
-          <ScrollView contentContainerStyle={styles.cardsContainer}>
-            {defectData.map(data => renderDefectCard(data))}
-          </ScrollView>
-        )}
-      </View>
+      {loading ? (
+        <ActivityIndicator size="large" color="#2D6A4F" />
+      ) : error ? (
+        <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>
+      ) : (
+        <ScrollView contentContainerStyle={styles.cardsContainer}>
+          {defectData.map(data => renderDefectCard(data))}
+        </ScrollView>
+      )}
       {renderPieChart()}
     </SafeAreaView>
   );
@@ -188,10 +186,11 @@ const styles = StyleSheet.create({
   cardWithBorder: {
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 16,
-    marginBottom:25,
+    padding: 0, // Remove padding here
+    marginBottom: 25,
+    marginTop:5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+
     shadowOpacity: 0.06,
     shadowRadius: 4,
     elevation: 2,
@@ -199,9 +198,10 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
   cardsContainer: {
-    padding: 16,
+    // Remove padding and set only gap/margin as needed
+    padding: 0,
     gap: 16,
-    marginLeft:2,
+    marginLeft: 2,
   },
   breakdownCard: {
     backgroundColor: '#fff',
