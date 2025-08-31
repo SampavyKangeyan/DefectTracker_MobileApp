@@ -67,6 +67,8 @@ const DefectSeverityIndex: React.FC<DefectSeverityIndexProps> = ({ projectId }) 
         <View style={styles.pillContainer}>
           <View style={styles.pillBg} />
           <View style={[styles.pillFill, { height: `${value ?? 0}%`, backgroundColor: color }]} />
+          {/* The pillLabels are absolutely positioned to the right of the pillContainer.
+              If pillContainer is too narrow, or parent is too small, they may be clipped or off-screen. */}
           <View style={styles.pillLabels}>
             <Text style={styles.pillLabel}>100</Text>
             <Text style={styles.pillLabel}>75</Text>
@@ -84,6 +86,8 @@ const DefectSeverityIndex: React.FC<DefectSeverityIndexProps> = ({ projectId }) 
   );
 };
 
+// Fix: Make sure pillContainer is wide enough and pillLabels are visible.
+// Update pillContainer and pillLabels styles:
 const styles = StyleSheet.create({
   cardWithBorder: {
     backgroundColor: '#fff',
@@ -111,14 +115,14 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   pillContainer: {
-    width: 32,
+    width: 48, // increased from 32
     height: 120,
     borderRadius: 16,
     backgroundColor: '#f3f4f6',
     marginRight: 18,
     justifyContent: 'flex-end',
     alignItems: 'center',
-    overflow: 'hidden',
+    overflow: 'visible', // allow labels to overflow
     position: 'relative',
   },
   pillBg: {
@@ -140,15 +144,16 @@ const styles = StyleSheet.create({
   },
   pillLabels: {
     position: 'absolute',
-    left: 36,
+    left: 50, // was 36, increase to match new width
     top: 0,
     height: '100%',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+    zIndex: 2, // ensure on top
   },
   pillLabel: {
     fontSize: 12,
-    color: '#6b7280',
+    color: '#000000ff',
     marginBottom: 0,
   },
   valueCol: {
