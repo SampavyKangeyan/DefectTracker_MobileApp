@@ -5,6 +5,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Image } from 'react-native';
 import ProjectService from '../services/projectServic';
+import apiClient from '../services/api';
 import { Project } from '../services/projectServic';
 
 // Types
@@ -47,6 +48,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
   const [filter, setFilter] = useState('All');
   const [notificationModalVisible, setNotificationModalVisible] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [projectCardColors, setProjectCardColors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,6 +58,33 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
       try {
         const data = await ProjectService.getProjects();
         setProjects(data);
+
+        // Fetch project card colors for all projects
+        const colorMap: Record<string, string> = {};
+        await Promise.all(
+          data.map(async (proj: Project) => {
+            try {
+              const res = await apiClient.get(`/dashboard/project-card-color/${proj.id}`);
+              if (
+                res.data &&
+                res.data.status === 'success' &&
+                Array.isArray(res.data.data) &&
+                res.data.data[0]?.colorCode
+              ) {
+                colorMap[proj.id] = res.data.data[0].colorCode === 'Red'
+                  ? '#e53935'
+                  : res.data.data[0].colorCode === 'Yellow'
+                  ? '#fbc02d'
+                  : res.data.data[0].colorCode === 'Green'
+                  ? '#43a047'
+                  : '#2D6A4F';
+              }
+            } catch {
+              colorMap[proj.id] = '#2D6A4F';
+            }
+          })
+        );
+        setProjectCardColors(colorMap);
       } catch (err: any) {
         setError(err.message);
         console.error('Error fetching projects:', err);
@@ -95,7 +124,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
   const renderProject = ({ item }: { item: Project }) => (
     <View style={[
       styles.projectCard,
-      { backgroundColor: SEVERITY_COLORS[item.severity] || '#ccc' }
+      { backgroundColor: projectCardColors[item.id] || '#ccc' }
     ]}>
       <Text style={styles.projectIcon}>✔️</Text>
       <Text style={styles.projectName}>{item.project_name}</Text>
@@ -230,7 +259,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
                 style={[
                   styles.projectCard,
                   {
-                    backgroundColor: SEVERITY_COLORS[item.severity] || '#ccc',
+                    backgroundColor: projectCardColors[item.id] || '#ccc',
                     width: 150,
                     height: 150,
                     borderRadius: 75, // circle

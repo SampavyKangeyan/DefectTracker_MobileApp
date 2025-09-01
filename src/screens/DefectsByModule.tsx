@@ -8,7 +8,7 @@ interface DefectsByModuleProps {
 }
 
 const COLORS = [
-  '#4285F4', '#00bfae', '#fbbc05', '#ff0000ff', '#a259f7', '#ff995aff', '#ffb300', '#8bc34a', '#607d8b', '#e91e63'
+  '#4285F4', '#00bfae', '#fbbc05', '#ff0000ff', '#a259f7', '#ff995aff', '#e0d8c3ff', '#8bc34a', '#607d8b', '#e91e63'
 ];
 
 const DefectsByModule: React.FC<DefectsByModuleProps> = ({ projectId }) => {
@@ -38,8 +38,8 @@ const DefectsByModule: React.FC<DefectsByModuleProps> = ({ projectId }) => {
               name: item.name,
               population: item.value,
               color: COLORS[idx % COLORS.length],
-              legendFontColor: '#333',
-              legendFontSize: 10,
+              legendFontColor: '#000000ff',
+              legendFontSize: 10, 
             }));
           setData(chartData);
         } else {
@@ -105,6 +105,20 @@ const DefectsByModule: React.FC<DefectsByModuleProps> = ({ projectId }) => {
         center={[0, 0]}
         style={styles.pieWithBorder}
       />
+      <View style={styles.moduleNamesRow}>
+        {data.map((item, idx) => (
+          <View key={item.name} style={styles.moduleNameItem}>
+            <View style={[styles.moduleDot, { backgroundColor: item.color }]} />
+            <Text
+              style={styles.moduleNameText}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
+              {item.name}
+            </Text>
+          </View>
+        ))}
+      </View>
       <Text style={[styles.total, { marginTop: 8 }]}>{total} Total Defects</Text>
       {mostCommon && (
         <Text style={styles.common}>
@@ -140,6 +154,36 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontStyle: 'italic',
     color: '#333',
+  },
+  moduleNamesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    marginTop: 12,
+    marginBottom: 4,
+    paddingHorizontal: 8,
+    width: '100%',
+  },
+  moduleNameItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 8,
+    marginVertical: 2,
+    maxWidth: '45%',
+  },
+  moduleDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    marginRight: 6,
+    alignContent:'center' ,
+  },
+  moduleNameText: {
+    fontSize: 14,
+    color: '#333',
+    textAlign: 'left',
+    flexShrink: 1,
   },
 });
 

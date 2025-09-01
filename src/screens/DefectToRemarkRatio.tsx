@@ -9,6 +9,8 @@ interface DefectToRemarkRatioProps {
 
 const DefectToRemarkRatio: React.FC<DefectToRemarkRatioProps> = ({ projectId }) => {
   const [ratio, setRatio] = useState<number | null>(null);
+  const [remarkRatioLevel, setRemarkRatioLevel] = useState<string>('Low');
+  const [remarkRatioColor, setRemarkRatioColor] = useState<string>('#10b981'); // default green
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,11 +20,36 @@ const DefectToRemarkRatio: React.FC<DefectToRemarkRatioProps> = ({ projectId }) 
       setError(null);
       try {
         const response = await apiClient.get(`/dashboard/defect-remark-ratio/${projectId}`);
-        // Use response.data directly (axios style)
-        setRatio(response.data?.data?.defect_remark_ratio ?? 0);
+        const remarkRatioData = response.data?.data;
+        const defect_remark_ratio = remarkRatioData?.defect_remark_ratio ?? 0;
+        setRatio(defect_remark_ratio);
+
+        // Set remark ratio level based on API output
+        let remarkRatio = 'Low';
+        if (defect_remark_ratio >= 98 && defect_remark_ratio <= 100) remarkRatio = 'Low';
+        else if (defect_remark_ratio >= 90 && defect_remark_ratio < 98) remarkRatio = 'Medium';
+        else remarkRatio = 'High';
+        setRemarkRatioLevel(remarkRatio);
+
+        // Set color based on API output (use backend color if present, fallback to logic)
+        let color = '#10b981'; // green
+        if (remarkRatioData?.color) {
+          // Map backend color string to hex
+          if (remarkRatioData.color === 'Green') color = '#10b981';
+          else if (remarkRatioData.color === 'Yellow') color = '#facc15';
+          else if (remarkRatioData.color === 'Red') color = '#ef4444';
+          else color = '#10b981';
+        } else {
+          if (remarkRatio === 'Low') color = '#10b981';
+          else if (remarkRatio === 'Medium') color = '#facc15';
+          else color = '#ef4444';
+        }
+        setRemarkRatioColor(color);
       } catch (err: any) {
         setError('Error fetching ratio');
         setRatio(null);
+        setRemarkRatioLevel('Low');
+        setRemarkRatioColor('#10b981');
       } finally {
         setLoading(false);
       }
@@ -38,24 +65,24 @@ const DefectToRemarkRatio: React.FC<DefectToRemarkRatioProps> = ({ projectId }) 
       <Text style={styles.title}>Defect to Remark Ratio</Text>
       <View style={styles.ratioCard}>
         {loading ? (
-          <ActivityIndicator size="small" color="#e53935" />
+          <ActivityIndicator size="small" color={remarkRatioColor} />
         ) : error ? (
           <Text style={{ color: 'red', marginBottom: 8 }}>{error}</Text>
         ) : (
           <>
-            <Text style={styles.ratioValue}>
+            <Text style={[styles.ratioValue, { color: remarkRatioColor }]}>
               {ratio !== null ? `${ratio.toFixed(2)}%` : '0%'}
             </Text>
-            <Text style={styles.ratioLabel}>
-              {(ratio ?? 0) > 80 ? 'Critical' : 'Normal'}
+            <Text style={[styles.ratioLabel, { color: remarkRatioColor }]}>
+              {remarkRatioLevel}
             </Text>
             <View style={styles.ratioBar}>
-              <View style={[styles.ratioBarFill, { width: `${fillPercent * 100}%` }]} />
+              <View style={[styles.ratioBarFill, { width: `${fillPercent * 100}%`, backgroundColor: remarkRatioColor }]} />
             </View>
             <View style={styles.ratioBarLabels}>
-              <Text style={styles.ratioBarLabelNum}>0%</Text>
-              <Text style={styles.ratioBarLabelNum}>50%</Text>
-              <Text style={styles.ratioBarLabelNum}>100%</Text>
+              <Text style={styles.ratioBarLabelNum}>0.0</Text>
+              <Text style={styles.ratioBarLabelNum}>0.5</Text>
+              <Text style={styles.ratioBarLabelNum}>1.0</Text>
             </View>
           </>
         )}

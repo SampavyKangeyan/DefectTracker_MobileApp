@@ -2,8 +2,8 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 
 // API Configuration matching the provided specification
-const API_BASE_URL = 'http://192.168.1.30:3000/api';
-// const API_BASE_URL = 'http://192.168.1.143:3000/api';
+// const API_BASE_URL = 'http://192.168.1.30:3000/api';
+const API_BASE_URL = 'http://192.168.1.143:3000/api';
 // const API_BASE_URL = 'http://172.20.10.2:3000/api';
 
 
