@@ -52,38 +52,70 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch projects on component mount
+  // Fetch projects on component mount and on filter change
   useEffect(() => {
     const fetchProjects = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const data = await ProjectService.getProjects();
-        setProjects(data);
+        let data: Project[] = [];
+        let colorMap: Record<string, string> = {};
 
-        // Fetch project card colors for all projects
-        const colorMap: Record<string, string> = {};
-        await Promise.all(
-          data.map(async (proj: Project) => {
-            try {
-              const res = await apiClient.get(`/dashboard/project-card-color/${proj.id}`);
-              if (
-                res.data &&
-                res.data.status === 'success' &&
-                Array.isArray(res.data.data) &&
-                res.data.data[0]?.colorCode
-              ) {
-                colorMap[proj.id] = res.data.data[0].colorCode === 'Red'
+        if (filter === 'All') {
+          data = await ProjectService.getProjects();
+          // Fetch color for each project using project-card-color API
+          await Promise.all(
+            data.map(async (proj: Project) => {
+              try {
+                const res = await apiClient.get(`/dashboard/project-card-color/${proj.id}`);
+                if (
+                  res.data &&
+                  res.data.status === 'success' &&
+                  Array.isArray(res.data.data) &&
+                  res.data.data[0]?.colorCode
+                ) {
+                  colorMap[proj.id] = res.data.data[0].colorCode === 'Red'
+                    ? '#e53935'
+                    : res.data.data[0].colorCode === 'Yellow'
+                    ? '#fbc02d'
+                    : res.data.data[0].colorCode === 'Green'
+                    ? '#43a047'
+                    : '#2D6A4F';
+                }
+              } catch {
+                colorMap[proj.id] = '#2D6A4F';
+              }
+            })
+          );
+        } else {
+          // Map filter to API status param
+          let statusParam = '';
+          if (filter === 'High Risk') statusParam = 'High';
+          else if (filter === 'Medium Risk') statusParam = 'Medium';
+          else if (filter === 'Low Risk') statusParam = 'Low';
+          if (statusParam) {
+            const res = await apiClient.get(`/dashboard/projects-status-filter?status=${statusParam}`);
+            if (res.data && res.data.status === 'success' && Array.isArray(res.data.data)) {
+              // Use colorCode directly from API response for filtered projects
+              data = res.data.data.map((proj: any, idx: number) => ({
+                id: proj.projectName + idx, // Use projectName + idx as key if no id
+                project_name: proj.projectName,
+                severity: proj.status,
+                // ...other fields if needed
+              }));
+              res.data.data.forEach((proj: any, idx: number) => {
+                colorMap[proj.projectName + idx] = proj.colorCode === 'Red'
                   ? '#e53935'
-                  : res.data.data[0].colorCode === 'Yellow'
+                  : proj.colorCode === 'Yellow'
                   ? '#fbc02d'
-                  : res.data.data[0].colorCode === 'Green'
+                  : proj.colorCode === 'Green'
                   ? '#43a047'
                   : '#2D6A4F';
-              }
-            } catch {
-              colorMap[proj.id] = '#2D6A4F';
+              });
             }
-          })
-        );
+          }
+        }
+        setProjects(data);
         setProjectCardColors(colorMap);
       } catch (err: any) {
         setError(err.message);
@@ -94,7 +126,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
     };
 
     fetchProjects();
-  }, []);
+  }, [filter]);
 
   // Responsive logic
   const screenWidth = Dimensions.get('window').width;
@@ -242,12 +274,12 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
           })}
         </View>
         <View style={styles.projectsGrid}>
-          {filteredProjects.length === 0 ? (
+          {projects.length === 0 ? (
             <Text style={{ textAlign: 'center', color: '#666', marginTop: 20 }}>
               No projects available.
             </Text>
           ) : (
-            filteredProjects.map((item, idx) => (
+            projects.map((item, idx) => (
               <TouchableOpacity
                 key={item.id ? item.id : `project-${idx}`}
                 activeOpacity={0.85}
@@ -272,7 +304,6 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
                 ) : (
                   <Text style={styles.projectIcon}>{SEVERITY_ICONS[item.severity]}</Text>
                 )}
-                {/* Show project name or fallback */}
                 <Text style={styles.projectName}>{item.project_name ? item.project_name : 'Unnamed Project'}</Text>
                 <View style={styles.severityBadge}>
                   <Text style={styles.severityText}>{item.severity}</Text>

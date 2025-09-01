@@ -15,6 +15,7 @@ import TimeDefectCharts from './TimeDefectCharts';
 import ProjectService from '../services/projectServic';
 import { Project } from '../services/projectServic';
 import DefectSeverityBreakdown from './DefectSeverityBreakdown';
+import apiClient from '../services/api';
 
 
 // Import the navigation types from App.tsx
@@ -53,6 +54,7 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
     severity: route.params.severity,
   });
   const [notificationModalVisible, setNotificationModalVisible] = useState(false);
+  const [overallStatus, setOverallStatus] = useState<string>(selectedProject.severity);
 
   // Fetch projects on component mount
   useEffect(() => {
@@ -70,6 +72,27 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
 
     fetchProjects();
   }, []);
+
+  useEffect(() => {
+    const fetchOverallStatus = async () => {
+      try {
+        const res = await apiClient.get(`/dashboard/project-card-color/${selectedProject.id}`);
+        if (
+          res.data &&
+          res.data.status === 'success' &&
+          Array.isArray(res.data.data) &&
+          res.data.data[0]?.status
+        ) {
+          setOverallStatus(res.data.data[0].status);
+        } else {
+          setOverallStatus(selectedProject.severity);
+        }
+      } catch {
+        setOverallStatus(selectedProject.severity);
+      }
+    };
+    fetchOverallStatus();
+  }, [selectedProject.id]);
 
   const handleBack = () => {
     navigation.goBack();
@@ -163,9 +186,9 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
               </Text>
             </TouchableOpacity>
           ))}
-        </RNScrollView>
-      </View>
-      <ScrollView style={styles.container} contentContainerStyle={{ paddingTop: 0 }}>
+          </RNScrollView>
+        </View>
+        <ScrollView style={styles.container} contentContainerStyle={{ paddingTop: 0 }}>
         {/* Loading and Error States */}
         {loading && (
           <View style={styles.barContainer}>
@@ -186,8 +209,8 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
         <View style={styles.barContainer}>
         <Text style={styles.title}>{selectedProject.project_name}</Text>
         <Text style={styles.severityLabel}>Severity:</Text>
-        <Text style={[styles.severity, { color: getSeverityColor(selectedProject.severity) }]}>
-          {selectedProject.severity}
+        <Text style={[styles.severity, { color: getSeverityColor(overallStatus) }]}>
+          {overallStatus}
         </Text>
         </View>
         {/* Defect Severity Breakdown Tables */}
