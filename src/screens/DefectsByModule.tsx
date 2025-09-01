@@ -1,106 +1,145 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import PieChart from 'react-native-pie-chart';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
+import { PieChart } from 'react-native-chart-kit';
+import apiClient from '../services/api';
 
-interface ModuleDefect {
-  name: string;
-  value: number;
-  color: string;
+interface DefectsByModuleProps {
+  projectId: string;
 }
 
-const MODULE_DEFECTS: ModuleDefect[] = [
-  { name: 'Configurations', value: 77, color: '#4285F4' },
-  { name: 'Project Management', value: 55, color: '#34a853' },
-  { name: 'Bench', value: 58, color: '#fbbc05' },
-  { name: 'Defects', value: 68, color: '#ea4335' },
-  { name: 'Test Cases', value: 58, color: '#00bfae' },
-  { name: 'Employee', value: 67, color: '#a142f4' },
-  { name: 'Releases', value: 34, color: '#ff7043' },
-  { name: 'Project', value: 22, color: '#c0ca33' },
-  { name: 'Main Template', value: 4, color: '#8d6e63' },
-  { name: 'Dashboard', value: 19, color: '#2D6A4F' },
+const COLORS = [
+  '#4285F4', '#00bfae', '#fbbc05', '#ff0000ff', '#a259f7', '#ff995aff', '#ffb300', '#8bc34a', '#607d8b', '#e91e63'
 ];
 
-const total = MODULE_DEFECTS.reduce((sum, m) => sum + m.value, 0);
+const DefectsByModule: React.FC<DefectsByModuleProps> = ({ projectId }) => {
+  const screenWidth = Dimensions.get('window').width;
+  const chartWidth = screenWidth - 40;
 
-const DefectsByModule: React.FC = () => {
-  const widthAndHeight = 220;
-//   const series = MODULE_DEFECTS.map(m => m.count);
-  const sliceColors = MODULE_DEFECTS.map(m => m.color);
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Sort modules by value in descending order for the legend
-  const sortedModules = [...MODULE_DEFECTS].sort((a, b) => b.value - a.value);
+  useEffect(() => {
+    if (!projectId) {
+      setData([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    apiClient
+      .get(`/dashboard/defects-by-module/${projectId}`)
+      .then((res) => {
+        if (res.data && res.data.status === 'success' && Array.isArray(res.data.data)) {
+          // Map backend data to chart format, filter out zero values
+          const chartData = res.data.data
+            .filter((item: any) => item.value > 0)
+            .map((item: any, idx: number) => ({
+              name: item.name,
+              population: item.value,
+              color: COLORS[idx % COLORS.length],
+              legendFontColor: '#333',
+              legendFontSize: 10,
+            }));
+          setData(chartData);
+        } else {
+          setError('Failed to load chart data');
+        }
+      })
+      .catch(() => setError('Failed to load chart data'))
+      .finally(() => setLoading(false));
+  }, [projectId]);
+
+  const chartConfig = {
+    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.chartContainer}>
+        <Text style={styles.title}>Defects By Module</Text>
+        <ActivityIndicator size="large" color="#2D6A4F" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.chartContainer}>
+        <Text style={styles.title}>Defects By Module</Text>
+        <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>
+      </View>
+    );
+  }
+
+  if (!data.length) {
+    return (
+      <View style={styles.chartContainer}>
+        <Text style={styles.title}>Defects By Module</Text>
+        <Text style={{ color: '#888', textAlign: 'center', marginTop: 40 }}>No data available</Text>
+      </View>
+    );
+  }
+
+  // Calculate total and most common
+  const total = data.reduce((sum, item) => sum + (item.population || 0), 0);
+  const mostCommon = data.reduce(
+    (max, item) => (item.population > (max?.population || 0) ? item : max),
+    data[0]
+  );
 
   return (
     <View style={styles.chartContainer}>
-      <Text style={styles.title}>Defects by Module</Text>
-      {/* Pie Chart centered */}
-      <View >
-        <PieChart
-          widthAndHeight={widthAndHeight}
-          series={MODULE_DEFECTS}
-        //   sliceColor={sliceColors}
-        //   coverRadius={0.6}
-        //   coverFill={'#fff'}
-        />
-      </View>
-      {/* Legend below the chart */}
-      <View style={styles.legendGrid}>
-        {sortedModules.map((m) => (
-          <View key={m.name} style={styles.legendItem}>
-            <View style={styles.legendRow}>
-              <View style={[styles.dot, { backgroundColor: m.color }]} />
-              <Text style={styles.moduleNameText}>{m.name} : </Text>
-              <Text style={styles.valueText}>
-                {m.value} - ({((m.value / total) * 100).toFixed(1)}%)
-              </Text>
-            </View>
-          </View>
-        ))}
-      </View>
+      <Text style={styles.title}>Defects By Module</Text>
+      <PieChart
+        data={data}
+        width={chartWidth}
+        height={220}
+        chartConfig={chartConfig}
+        accessor="population"
+        backgroundColor="transparent"
+        paddingLeft="15"
+        absolute
+        hasLegend={true}
+        center={[0, 0]}
+        style={styles.pieWithBorder}
+      />
+      <Text style={[styles.total, { marginTop: 8 }]}>{total} Total Defects</Text>
+      {mostCommon && (
+        <Text style={styles.common}>
+          {mostCommon.population} Most Common: {mostCommon.name}
+        </Text>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  title: {
-    fontSize: 17,
-    fontWeight: 'bold',
-    color: '#222',
-    marginBottom: 10,
-  },
   chartContainer: {
     paddingTop: 16,
-    marginBottom: 20,
+    marginBottom: 40,
   },
-  legendGrid: {
-    flexDirection: 'column',
-    alignSelf: 'center',
+  pieWithBorder: {
+    borderWidth: 0,
+    borderColor: '#fff',
+    borderRadius: 0,
+    overflow: 'hidden',
   },
-  legendItem: {
-    width: '100%',
-    marginBottom: 6,
+  title: {
+    fontSize: 18,
+    marginBottom: 12,
+    fontWeight: '600',
+    color: '#222',
   },
-  legendRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 2,
+  total: {
+    fontSize: 16,
+    fontWeight: '600',
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
-  },
-  moduleNameText: {
-    fontSize: 12,
-    color: '#000',
-    fontWeight: '500',
-  },
-  valueText: {
+  common: {
     fontSize: 14,
-    color: '#000',
+    fontStyle: 'italic',
+    color: '#333',
   },
 });
 

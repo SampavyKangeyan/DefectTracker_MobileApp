@@ -192,12 +192,16 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
         </View>
         {/* Defect Severity Breakdown Tables */}
         <View style={styles.cardWithBorder}>
-          <Text style={styles.sectionTitle}>Defect Severity Breakdown</Text>
+       <Text style={styles.sectionTitle}>Defect Severity Breakdowns</Text>
+          
           {/* Pass navigation prop as required by DefectSeverityBreakdown */}
-          <DefectSeverityBreakdown
+         
+             <DefectSeverityBreakdown
             projectId={selectedProject.id}
             navigation={navigation as any} // Type assertion to fix navigation prop type issue
           />
+          
+         
         </View>
         <DefectDensityMeter projectId={selectedProject.id} />
         <View>
@@ -215,7 +219,7 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
         {/* Insert Time to Find Defects and Time to Fix Defects */}
         <TimeDefectCharts />
         <View style={[styles.cardWithBorder]}>
-          <DefectsByModule />
+          <DefectsByModule projectId={selectedProject.id}/>
         </View>
         </>
         )}
@@ -375,7 +379,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 18,
-    marginBottom: 5,
     color: '#222',
   },
   statusRow: {
@@ -481,9 +484,10 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   cardWithBorder: {
+    display:'flex',
+    flexDirection:'column',
     backgroundColor: '#fff',
     borderRadius: 12,
-    // padding: 16,
     paddingHorizontal: 16,
     marginBottom:25,
     shadowColor: '#000',
@@ -493,12 +497,12 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: '#e0e0e0',
-    paddingBottom: 5,
+    paddingBottom:10,
   },
-  cardsContainer: {
-    gap: 16,
-    marginBottom: 10,
-  },
+  // cardsContainer: {
+  //   gap: 16,
+  //   marginBottom: 10,
+  // },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',

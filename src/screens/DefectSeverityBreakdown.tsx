@@ -164,7 +164,7 @@ const DefectSeverityBreakdown: React.FC<DefectSeverityBreakdownProps> = ({ navig
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {loading ? (
         <ActivityIndicator size="large" color="#2D6A4F" />
       ) : error ? (
@@ -175,13 +175,15 @@ const DefectSeverityBreakdown: React.FC<DefectSeverityBreakdownProps> = ({ navig
         </ScrollView>
       )}
       {renderPieChart()}
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    marginTop:10,
+    
     
   },
   cardWithBorder: {
@@ -198,9 +200,7 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
   cardsContainer: {
-    // Remove padding and set only gap/margin as needed
-    padding: 0,
-    gap: 16,
+    gap: 5,
     marginLeft: 2,
   },
   breakdownCard: {
