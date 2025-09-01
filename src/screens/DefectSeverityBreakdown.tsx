@@ -79,6 +79,7 @@ const DefectSeverityBreakdown: React.FC<DefectSeverityBreakdownProps> = ({ navig
           backgroundColor: '#fff', 
           shadowColor: defectData.color,
           borderWidth: 2,
+          marginBottom:10
         }
       ]}
     >
@@ -181,16 +182,15 @@ const DefectSeverityBreakdown: React.FC<DefectSeverityBreakdownProps> = ({ navig
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f7fafd',
+    
   },
   cardWithBorder: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 0, // Remove padding here
-    marginBottom: 25,
-    marginTop:5,
+    marginBottom: 2,
+    // marginTop:5,
     shadowColor: '#000',
-
     shadowOpacity: 0.06,
     shadowRadius: 4,
     elevation: 2,

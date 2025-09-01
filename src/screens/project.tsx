@@ -210,7 +210,7 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
           <DefectsReopenedChart projectId={selectedProject.id}/>
         </View>
         <View style={[styles.cardWithBorder]}>
-          <DefectDistributionChart />
+          <DefectDistributionChart projectId={selectedProject.id}/>
         </View>
         {/* Insert Time to Find Defects and Time to Fix Defects */}
         <TimeDefectCharts />
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 18,
-    marginBottom: 10,
+    marginBottom: 5,
     color: '#222',
   },
   statusRow: {

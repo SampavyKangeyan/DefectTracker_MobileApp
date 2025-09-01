@@ -103,45 +103,86 @@ export const DefectsReopenedChart: React.FC<{ projectId?: string }> = ({ project
   );
 };
 
-export const DefectDistributionChart: React.FC = () => {
+export const DefectDistributionChart: React.FC<{ projectId?: string }> = ({ projectId }) => {
   const screenWidth = Dimensions.get('window').width;
   const chartWidth = screenWidth - 40;
 
-  const typeData = [
-    {
-      name: 'Functionality',
-      population: 245,
-      color: '#4285F4',
-      legendFontColor: '#333',
-      legendFontSize: 12,
-    },
-    {
-      name: 'UI',
-      population: 81,
-      color: '#00bfae',
-      legendFontColor: '#333',
-      legendFontSize: 12,
-    },
-    {
-      name: 'Usability',
-      population: 30,
-      color: '#fbbc05',
-      legendFontColor: '#333',
-      legendFontSize: 12,
-    },
-    {
-      name: 'Validation',
-      population: 103,
-      color: '#ff0000ff',
-      legendFontColor: '#333',
-      legendFontSize: 12,
-    },
-  ];
+  const [typeData, setTypeData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!projectId) {
+      setTypeData([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    apiClient
+      .get(`/dashboard/defects-distribution-by-type/${projectId}`)
+      .then((res) => {
+        if (res.data && res.data.status === 'success' && Array.isArray(res.data.data)) {
+          // Map backend data to chart format, filter out zero counts
+          const colors = [
+            '#4285F4', '#00bfae', '#fbbc05', '#ff0000ff', '#a259f7', '#ff995aff', '#ffb300', '#8bc34a', '#607d8b', '#e91e63'
+          ];
+          const chartData = res.data.data
+            .filter((item: any) => item.count > 0)
+            .map((item: any, idx: number) => ({
+              name: item.defect_type_name,
+              population: item.count,
+              color: colors[idx % colors.length],
+              legendFontColor: '#333',
+              legendFontSize: 12,
+            }));
+          setTypeData(chartData);
+        } else {
+          setError('Failed to load chart data');
+        }
+      })
+      .catch(() => setError('Failed to load chart data'))
+      .finally(() => setLoading(false));
+  }, [projectId]);
 
   const chartConfig = {
     color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
     labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
   };
+
+  if (loading) {
+    return (
+      <View style={styles.chartContainer}>
+        <Text style={styles.title}>Defect Distribution by Type</Text>
+        <ActivityIndicator size="large" color="#2D6A4F" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.chartContainer}>
+        <Text style={styles.title}>Defect Distribution by Type</Text>
+        <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>
+      </View>
+    );
+  }
+
+  if (!typeData.length) {
+    return (
+      <View style={styles.chartContainer}>
+        <Text style={styles.title}>Defect Distribution by Type</Text>
+        <Text style={{ color: '#888', textAlign: 'center', marginTop: 40 }}>No data available</Text>
+      </View>
+    );
+  }
+
+  // Calculate total and most common
+  const total = typeData.reduce((sum, item) => sum + (item.population || 0), 0);
+  const mostCommon = typeData.reduce(
+    (max, item) => (item.population > (max?.population || 0) ? item : max),
+    typeData[0]
+  );
 
   return (
     <View style={styles.chartContainer} >
@@ -157,11 +198,14 @@ export const DefectDistributionChart: React.FC = () => {
         absolute
         hasLegend={true}
         center={[0, 0]}
-        // Add white border between slices
         style={styles.pieWithBorder}
       />
-      <Text style={[styles.total, { marginTop: 8 }]}>459 Total Defects</Text>
-      <Text style={styles.common}>245 Most Common: Functionality</Text>
+      <Text style={[styles.total, { marginTop: 8 }]}>{total} Total Defects</Text>
+      {mostCommon && (
+        <Text style={styles.common}>
+          {mostCommon.population} Most Common: {mostCommon.name}
+        </Text>
+      )}
     </View>
   );
 };
@@ -173,7 +217,7 @@ const DefectPieCharts: React.FC<{ projectId?: string }> = ({ projectId }) => {
         <DefectsReopenedChart projectId={projectId} />
       </View>
       <View >
-        <DefectDistributionChart />
+        <DefectDistributionChart projectId={projectId} />
       </View>
     </View>
   );
