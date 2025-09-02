@@ -52,6 +52,10 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [highSeverityProjects, setHighSeverityProjects] = useState<Project[]>([]);
+  // Add new state for counts
+  const [highRiskCount, setHighRiskCount] = useState(0);
+  const [mediumRiskCount, setMediumRiskCount] = useState(0);
+  const [lowRiskCount, setLowRiskCount] = useState(0);
 
   // Fetch projects on component mount and on filter change
   useEffect(() => {
@@ -153,6 +157,27 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
     fetchHighSeverityProjects();
   }, [projects]);
 
+  // Fetch counts for each severity
+  useEffect(() => {
+    const fetchSeverityCounts = async () => {
+      try {
+        const [highRes, mediumRes, lowRes] = await Promise.all([
+          apiClient.get('/dashboard/projects-status-filter?status=High'),
+          apiClient.get('/dashboard/projects-status-filter?status=Medium'),
+          apiClient.get('/dashboard/projects-status-filter?status=Low'),
+        ]);
+        setHighRiskCount(Array.isArray(highRes.data?.data) ? highRes.data.data.length : 0);
+        setMediumRiskCount(Array.isArray(mediumRes.data?.data) ? mediumRes.data.data.length : 0);
+        setLowRiskCount(Array.isArray(lowRes.data?.data) ? lowRes.data.data.length : 0);
+      } catch {
+        setHighRiskCount(0);
+        setMediumRiskCount(0);
+        setLowRiskCount(0);
+      }
+    };
+    fetchSeverityCounts();
+  }, [projects]);
+
   // Responsive logic
   const screenWidth = Dimensions.get('window').width;
   const isSmallScreen = screenWidth < 400;
@@ -249,7 +274,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
             <Text style={styles.statusIcon}>❗</Text>
             <Text style={[styles.statusTitle, { color: '#e53935' }]}>High Risk Projects</Text>
             <Text style={styles.statusCount}>
-              {projects.filter(p => p.severity === 'High Risk').length}
+              {highRiskCount}
             </Text>
             <Text style={styles.statusDesc}>Immediate attention required</Text>
           </View>
@@ -257,7 +282,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
             <Text style={styles.statusIcon}>⏰</Text>
             <Text style={[styles.statusTitle, { color: '#fbc02d' }]}>Medium Risk Projects</Text>
             <Text style={styles.statusCount}>
-              {projects.filter(p => p.severity === 'Medium Risk').length}
+              {mediumRiskCount}
             </Text>
             <Text style={styles.statusDesc}>Monitor progress closely</Text>
           </View>
@@ -265,7 +290,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
             <Text style={styles.statusIcon}>✔️</Text>
             <Text style={[styles.statusTitle, { color: '#43a047' }]}>Low Risk Projects</Text>
             <Text style={styles.statusCount}>
-              {projects.filter(p => p.severity === 'Low Risk').length}
+              {lowRiskCount}
             </Text>
             <Text style={styles.statusDesc}>Stable and on track</Text>
           </View>
@@ -323,11 +348,10 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
                   },
                 ]}
               >
-                {item.severity === 'High Risk' ? (
-                  <Text style={[styles.projectIcon, { color: '#000' }]}>❕</Text>
-                ) : (
-                  <Text style={styles.projectIcon}>{SEVERITY_ICONS[item.severity]}</Text>
-                )}
+                {/* Use severity icon from SEVERITY_ICONS */}
+                <Text style={styles.projectIcon}>
+                  {SEVERITY_ICONS[item.severity as SeverityLevel] || '⏰'}
+                </Text>
                 <Text style={styles.projectName}>{item.project_name ? item.project_name : 'Unnamed Project'}</Text>
                 <View style={styles.severityBadge}>
                   <Text style={styles.severityText}>{item.severity}</Text>
@@ -554,7 +578,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   severityBadge: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    // backgroundColor: 'rgba(0, 0, 0, 0.18)',
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 4,
@@ -583,6 +607,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    color:'#000',
   },
   severityBreakdownText: {
     flex: 1,

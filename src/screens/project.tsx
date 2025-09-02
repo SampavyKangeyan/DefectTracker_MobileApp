@@ -55,6 +55,7 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
   });
   const [notificationModalVisible, setNotificationModalVisible] = useState(false);
   const [overallStatus, setOverallStatus] = useState<string>(selectedProject.severity);
+  const [highSeverityProjects, setHighSeverityProjects] = useState<Project[]>([]);
 
   // Fetch projects on component mount
   useEffect(() => {
@@ -72,6 +73,30 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
 
     fetchProjects();
   }, []);
+
+  // Fetch high severity projects whenever projects change
+  useEffect(() => {
+    const fetchHighSeverityProjects = async () => {
+      try {
+        const res = await apiClient.get('/dashboard/projects-status-filter?status=High');
+        if (res.data && res.data.status === 'success' && Array.isArray(res.data.data)) {
+          setHighSeverityProjects(
+            res.data.data.map((proj: any, idx: number) => ({
+              id: proj.projectName + idx,
+              project_name: proj.projectName,
+              severity: proj.status,
+              // ...other fields if needed
+            }))
+          );
+        } else {
+          setHighSeverityProjects([]);
+        }
+      } catch {
+        setHighSeverityProjects([]);
+      }
+    };
+    fetchHighSeverityProjects();
+  }, [projects]);
 
   useEffect(() => {
     const fetchOverallStatus = async () => {
@@ -146,7 +171,7 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
             <Icon name="notifications" size={20} color="#000000ff" />
             <View style={styles.notificationBadge}>
               <Text style={styles.badgeText}>
-                {projects.filter(p => p.severity === HIGH_RISK_SEVERITY).length}
+                {highSeverityProjects.length}
               </Text>
             </View>
           </TouchableOpacity>
@@ -268,7 +293,7 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
             </View>
 
             <View style={styles.notificationList}>
-              {projects.filter(p => p.severity === HIGH_RISK_SEVERITY).map((project) => (
+              {highSeverityProjects.map((project) => (
                 <View key={project.id} style={styles.notificationItem}>
                   <Icon name="warning" size={20} color="#ff0000ff" />
                   <View style={styles.notificationContent}>
@@ -277,7 +302,7 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
                   </View>
                 </View>
               ))}
-              {projects.filter(p => p.severity === HIGH_RISK_SEVERITY).length === 0 && (
+              {highSeverityProjects.length === 0 && (
                 <Text style={styles.noNotifications}>No critical notifications</Text>
               )}
             </View>
