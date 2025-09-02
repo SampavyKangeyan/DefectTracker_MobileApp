@@ -39,7 +39,7 @@ const DefectsByModule: React.FC<DefectsByModuleProps> = ({ projectId }) => {
               population: item.value,
               color: COLORS[idx % COLORS.length],
               legendFontColor: '#000000ff',
-              legendFontSize: 10, 
+              legendFontSize: 18, 
             }));
           setData(chartData);
         } else {
@@ -49,6 +49,7 @@ const DefectsByModule: React.FC<DefectsByModuleProps> = ({ projectId }) => {
       .catch(() => setError('Failed to load chart data'))
       .finally(() => setLoading(false));
   }, [projectId]);
+console.log({data});
 
   const chartConfig = {
     color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
@@ -93,25 +94,29 @@ const DefectsByModule: React.FC<DefectsByModuleProps> = ({ projectId }) => {
     <View style={styles.chartContainer}>
       <Text style={styles.title}>Defects By Module</Text>
       <PieChart
+
         data={data}
-        width={chartWidth}
-        height={220}
+        width={chartWidth}  
+        height={300}
         chartConfig={chartConfig}
         accessor="population"
         backgroundColor="transparent"
-        paddingLeft="15"
+        paddingLeft="20"
+      
         absolute
-        hasLegend={true}
-        center={[0, 0]}
+        hasLegend={false}
+        center={[60, 0]}
         style={styles.pieWithBorder}
       />
       <View style={styles.moduleNamesRow}>
         {data.map((item, idx) => (
           <View key={item.name} style={styles.moduleNameItem}>
             <View style={[styles.moduleDot, { backgroundColor: item.color }]} />
+           <Text style={{marginRight:10}}>{item.population}</Text>
             <Text
               style={styles.moduleNameText}
-              numberOfLines={2}
+              numberOfLines={1}
+              
               ellipsizeMode="tail"
             >
               {item.name}
@@ -139,6 +144,7 @@ const styles = StyleSheet.create({
     borderColor: '#fff',
     borderRadius: 0,
     overflow: 'hidden',
+
   },
   title: {
     fontSize: 18,
@@ -158,19 +164,20 @@ const styles = StyleSheet.create({
   moduleNamesRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 12,
     marginBottom: 4,
     paddingHorizontal: 8,
     width: '100%',
   },
   moduleNameItem: {
+    display:'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 8,
+    justifyContent:'flex-start',
     marginVertical: 2,
-    maxWidth: '45%',
+    width: '60%',
   },
   moduleDot: {
     width: 14,
@@ -180,9 +187,11 @@ const styles = StyleSheet.create({
     alignContent:'center' ,
   },
   moduleNameText: {
+    
+    
     fontSize: 14,
     color: '#333',
-    textAlign: 'left',
+    textAlign: 'right',
     flexShrink: 1,
   },
 });

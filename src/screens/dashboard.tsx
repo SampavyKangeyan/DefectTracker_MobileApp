@@ -350,7 +350,8 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
               >
                 {/* Use severity icon from SEVERITY_ICONS */}
                 <Text style={styles.projectIcon}>
-                  {SEVERITY_ICONS[item.severity as SeverityLevel] || '⏰'}
+                  {SEVERITY_ICONS[item.severity as SeverityLevel] || '⏱️'}
+                  {/* ☑️ */}
                 </Text>
                 <Text style={styles.projectName}>{item.project_name ? item.project_name : 'Unnamed Project'}</Text>
                 <View style={styles.severityBadge}>
