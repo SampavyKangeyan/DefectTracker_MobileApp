@@ -51,6 +51,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
   const [projectCardColors, setProjectCardColors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [highSeverityProjects, setHighSeverityProjects] = useState<Project[]>([]);
 
   // Fetch projects on component mount and on filter change
   useEffect(() => {
@@ -128,6 +129,30 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
     fetchProjects();
   }, [filter]);
 
+  // Fetch high severity projects whenever projects change
+  useEffect(() => {
+    const fetchHighSeverityProjects = async () => {
+      try {
+        const res = await apiClient.get('/dashboard/projects-status-filter?status=High');
+        if (res.data && res.data.status === 'success' && Array.isArray(res.data.data)) {
+          setHighSeverityProjects(
+            res.data.data.map((proj: any, idx: number) => ({
+              id: proj.projectName + idx,
+              project_name: proj.projectName,
+              severity: proj.status,
+              // ...other fields if needed
+            }))
+          );
+        } else {
+          setHighSeverityProjects([]);
+        }
+      } catch {
+        setHighSeverityProjects([]);
+      }
+    };
+    fetchHighSeverityProjects();
+  }, [projects]);
+
   // Responsive logic
   const screenWidth = Dimensions.get('window').width;
   const isSmallScreen = screenWidth < 400;
@@ -186,8 +211,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
             <Icon name="notifications" size={20} color="#000000ff" />
             <View style={styles.notificationBadge}>
               <Text style={styles.badgeText}>
-                {/* Simplified filter */}
-                {projects.reduce((count, p) => p.severity === 'High Risk' ? count + 1 : count, 0)}
+                {highSeverityProjects.length}
               </Text>
             </View>
           </TouchableOpacity>
@@ -315,7 +339,6 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
         </>
         )}
       </ScrollView>
-
       {/* Notification Modal */}
       <Modal
         animationType="slide"
@@ -336,8 +359,8 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
             </View>
 
             <View style={styles.notificationList}>
-              {/* Simplified filter and fixed error */}
-              {projects.filter(p => p.severity === 'High Risk').map((project) => (
+              {/* Show high severity project names from API */}
+              {highSeverityProjects.map((project) => (
                 <View key={project.id} style={styles.notificationItem}>
                   <Icon name="warning" size={20} color="#e53935" />
                   <View style={styles.notificationContent}>
@@ -348,7 +371,7 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
                   </View>
                 </View>
               ))}
-              {projects.filter(p => p.severity === 'High Risk').length === 0 && (
+              {highSeverityProjects.length === 0 && (
                 <Text style={styles.noNotifications}>No critical notifications</Text>
               )}
             </View>
