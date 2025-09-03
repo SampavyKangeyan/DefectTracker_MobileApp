@@ -328,7 +328,13 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
               No projects available.
             </Text>
           ) : (
-            projects.map((item, idx) => (
+            (filter === 'All'
+              ? [...projects].sort((a, b) => {
+                  const severityOrder: SeverityLevel[] = ['High Risk', 'Medium Risk', 'Low Risk'];
+                  return severityOrder.indexOf(a.severity as SeverityLevel) - severityOrder.indexOf(b.severity as SeverityLevel);
+                })
+              : projects
+            ).map((item, idx) => (
               <TouchableOpacity
                 key={item.id ? item.id : `project-${idx}`}
                 activeOpacity={0.85}
@@ -348,10 +354,8 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
                   },
                 ]}
               >
-                {/* Use severity icon from SEVERITY_ICONS */}
                 <Text style={styles.projectIcon}>
                   {SEVERITY_ICONS[item.severity as SeverityLevel] || '⏱️'}
-                  {/* ☑️ */}
                 </Text>
                 <Text style={styles.projectName}>{item.project_name ? item.project_name : 'Unnamed Project'}</Text>
                 <View style={styles.severityBadge}>

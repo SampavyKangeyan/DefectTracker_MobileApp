@@ -187,12 +187,7 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
       <View style={styles.selectionBarContainer}>
         <Text style={styles.selectionLabel}>Project Selection</Text>
         <RNScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.selectionScroll}>
-          {[...projects].sort((a, b) => {
-            // Put selected project first
-            if (a.project_name === selectedProject.project_name) return -1;
-            if (b.project_name === selectedProject.project_name) return 1;
-            return 0;
-          }).map((proj) => (
+          {projects.map((proj) => (
             <TouchableOpacity
               key={proj.id + proj.project_name}
               style={[styles.selectionBtn, selectedProject.project_name === proj.project_name && styles.selectionBtnActive]}
@@ -211,7 +206,7 @@ const ProjectDetailsScreen: React.FC<ProjectDetailsProps> = ({ route, navigation
               </Text>
             </TouchableOpacity>
           ))}
-          </RNScrollView>
+        </RNScrollView>
         </View>
         <ScrollView style={styles.container} contentContainerStyle={{ paddingTop: 0 }}>
         {/* Loading and Error States */}
@@ -643,6 +638,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
 });
+
 
 export default ProjectDetailsScreen;
 
