@@ -328,41 +328,46 @@ const DashboardScreen = ({ navigation }: { navigation: StackNavigationProp<any, 
               No projects available.
             </Text>
           ) : (
-            (filter === 'All'
-              ? [...projects].sort((a, b) => {
-                  const severityOrder: SeverityLevel[] = ['High Risk', 'Medium Risk', 'Low Risk'];
-                  return severityOrder.indexOf(a.severity as SeverityLevel) - severityOrder.indexOf(b.severity as SeverityLevel);
-                })
-              : projects
-            ).map((item, idx) => (
-              <TouchableOpacity
-                key={item.id ? item.id : `project-${idx}`}
-                activeOpacity={0.85}
-                onPress={() => navigation.navigate('ProjectDetails', {
-                  id: item.id,
-                  name: item.project_name,
-                  severity: item.severity,
-                })}
-                style={[
-                  styles.projectCard,
-                  {
-                    backgroundColor: projectCardColors[item.id] || '#ccc',
-                    width: 150,
-                    height: 150,
-                    borderRadius: 75, // circle
-                    margin: 10,
-                  },
-                ]}
-              >
-                <Text style={styles.projectIcon}>
-                  {SEVERITY_ICONS[item.severity as SeverityLevel] || '⏱️'}
-                </Text>
-                <Text style={styles.projectName}>{item.project_name ? item.project_name : 'Unnamed Project'}</Text>
-                <View style={styles.severityBadge}>
-                  <Text style={styles.severityText}>{item.severity}</Text>
-                </View>
-              </TouchableOpacity>
-            ))
+            // Sort by card color: Red (high) -> Yellow (medium) -> Green (low) -> others
+            [...projects]
+              .sort((a, b) => {
+                const colorOrder = ['#e53935', '#fbc02d', '#43a047'];
+                const colorA = projectCardColors[a.id] || '';
+                const colorB = projectCardColors[b.id] || '';
+                const idxA = colorOrder.indexOf(colorA);
+                const idxB = colorOrder.indexOf(colorB);
+                // If color not found, put at end
+                return (idxA === -1 ? colorOrder.length : idxA) - (idxB === -1 ? colorOrder.length : idxB);
+              })
+              .map((item, idx) => (
+                <TouchableOpacity
+                  key={item.id ? item.id : `project-${idx}`}
+                  activeOpacity={0.85}
+                  onPress={() => navigation.navigate('ProjectDetails', {
+                    id: item.id,
+                    name: item.project_name,
+                    severity: item.severity,
+                  })}
+                  style={[
+                    styles.projectCard,
+                    {
+                      backgroundColor: projectCardColors[item.id] || '#ccc',
+                      width: 150,
+                      height: 150,
+                      borderRadius: 75, // circle
+                      margin: 10,
+                    },
+                  ]}
+                >
+                  <Text style={styles.projectIcon}>
+                    {SEVERITY_ICONS[item.severity as SeverityLevel] || '⏱️'}
+                  </Text>
+                  <Text style={styles.projectName}>{item.project_name ? item.project_name : 'Unnamed Project'}</Text>
+                  <View style={styles.severityBadge}>
+                    <Text style={styles.severityText}>{item.severity}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))
           )}
         </View>
         </>
