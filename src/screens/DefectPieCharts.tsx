@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, Dimensions, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, Dimensions, ActivityIndicator, Pressable, Alert } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 import apiClient from '../services/api';
 
@@ -10,6 +10,91 @@ export const DefectsReopenedChart: React.FC<{ projectId?: string }> = ({ project
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedSliceIndex, setSelectedSliceIndex] = useState<number | null>(null);
+
+const START_OFFSET_DEG = -90; 
+
+
+const paddingLeft = 0;
+const PAD_LEFT: number = 
+  typeof paddingLeft === "string" 
+    ? parseFloat(paddingLeft) 
+    : (paddingLeft || 0);
+const handlePress = (evt: any) => {
+  const { locationX, locationY } = evt.nativeEvent;
+
+  console.log({ locationX, locationY });
+
+  // Adjust chart center (consider padding)
+  const centerX = 110 ;
+  const centerY = 110; // chart height is 220
+let angle=0;
+  // Distance vector from center
+  if (locationX > centerX && locationY < centerY) {
+    const dx= locationX - centerX;
+    const dy = centerY - locationY;
+    angle = -Math.atan2(dy, dx) * (180 / Math.PI); 
+    console.log("0-90", {angle});
+  }
+  else if (locationX < centerX && locationY < centerY) {
+   const dx= locationX - centerX;
+   const dy = centerY - locationY;
+   angle = -Math.atan2(dy, dx) * (180 / Math.PI); 
+   console.log("90-180", {angle});
+  }
+  else if (locationX < centerX && locationY > centerY) {
+    const dx= locationX - centerX;
+    const dy = locationY - centerY;
+    angle = Math.atan2(dy, dx) * (180 / Math.PI); 
+    angle = angle + 360
+    console.log("180-270", {angle});
+  }
+   
+  else if (locationX > centerX && locationY > centerY) {
+    const dx= locationX - centerX;
+    const dy = locationY - centerY;
+    angle = Math.atan2(dy, dx) * (180 / Math.PI); 
+    angle = angle + 360
+    console.log("270-360", {angle});
+    
+  }
+
+  
+
+  // Angle in [0, 360), measured clockwise from +X axis
+
+  
+
+  
+  
+
+  // If your pie starts with an offset (e.g. top = -90°), apply it
+  angle = (angle - START_OFFSET_DEG + 360) % 360;
+
+  // Find which slice contains the angle
+  const total = data.reduce((s, d) => s + d.population, 0);
+  let start = 0;
+
+  for (let i = 0; i < data.length; i++) {
+    console.log({start});
+    
+    const sliceAngle = (data[i].population / total) * 360;
+    console.log({sliceAngle});
+    
+
+    const end = start + sliceAngle;
+    console.log({end});
+    
+
+    if (angle >= start && angle < end) {
+      console.log(`start: ${start}, end: ${end}, angle: ${angle}, sliceAngle: ${sliceAngle}`);
+      Alert.alert(data[i].name, `Defects: ${data[i].defectIds.join(", ")}`);
+      return 0; 
+    }
+
+    start = end;
+  }
+};
 
   useEffect(() => {
     if (!projectId) {
@@ -19,11 +104,11 @@ export const DefectsReopenedChart: React.FC<{ projectId?: string }> = ({ project
     }
     setLoading(true);
     setError(null);
+    setSelectedSliceIndex(null); // Reset selection when project changes
     apiClient
       .get(`/dashboard/defects-reopened-multiple-times/${projectId}`)
       .then((res) => {
         if (res.data && res.data.status === 'success' && Array.isArray(res.data.data)) {
-          // Filter out zero population slices to avoid invisible chart
           const filtered = res.data.data.filter((item: any) => item.population > 0);
           setData(
             filtered.length > 0
@@ -83,10 +168,16 @@ export const DefectsReopenedChart: React.FC<{ projectId?: string }> = ({ project
     );
   }
 
+  // Pie slice press handler
+  const handlePiePress = (index: number) => {
+    setSelectedSliceIndex(index);
+  };
+
   return (
     <View style={styles.chartContainer}>
       <Text style={styles.title}>Defects Reopened Multiple Times</Text>
-      <PieChart
+      <Pressable onPress={handlePress}>
+        <PieChart
         data={data}
         width={chartWidth}
         height={220}
@@ -97,8 +188,22 @@ export const DefectsReopenedChart: React.FC<{ projectId?: string }> = ({ project
         absolute
         hasLegend={true}
         center={[0, 0]}
-        style={styles.pieWithBorder}
+        style={styles.pieWithBorder} 
       />
+      </Pressable>
+
+      {/* Show defect IDs for selected slice */}
+      {selectedSliceIndex !== null && data[selectedSliceIndex] && data[selectedSliceIndex].defectIds && (
+        <View style={styles.defectIdCard}>
+          <Text style={styles.defectIdTitle}>{data[selectedSliceIndex].name}</Text>
+          <Text style={styles.defectIdSubtitle}>Defect ID</Text>
+          {data[selectedSliceIndex].defectIds.map((id: string) => (
+            <View key={id} style={styles.defectIdItem}>
+              <Text style={styles.defectIdText}>{id}</Text>
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 };
@@ -252,6 +357,38 @@ const styles = StyleSheet.create({
   common: {
     fontSize: 14,
     fontStyle: 'italic',
+    color: '#333',
+  },
+  defectIdCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 10,
+    marginHorizontal: 10,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+  },
+  defectIdTitle: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 4,
+    color: '#222',
+  },
+  defectIdSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+  },
+  defectIdItem: {
+    paddingVertical: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  defectIdText: {
+    fontSize: 14,
     color: '#333',
   },
 });
